@@ -1,0 +1,22 @@
+/*
+Theme Name: Kervan Tur
+Theme URI: https://kervan-tur.com
+Author: Kervan Kültür Turlari
+Description: Eigenes, schlankes Theme für Kervan Kültür Turlari – ohne Page-Builder, ohne ACF.
+Version: 1.0
+Text Domain: kervan-tur
+*/
+
+:root{
+  --ink:#1B2438; --ink-2:#232F49; --teal:#2F6E6C; --clay:#BD5B3B; --clay-dark:#9C462C;
+  --gold:#C99A4A; --sand:#F3E8D6; --cream:#FBF6EC; --charcoal:#2B2016; --line:rgba(43,32,22,.14);
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--cream); color:var(--charcoal); font-family:'Work Sans', sans-serif; }
+h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; }
+a{ color:inherit; }
+.wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
+
+/* Der Rest des Designs (Hero, Tourkarten, Filter usw.) kommt Stück für Stück
+   in eigenen CSS-Dateien dazu, sobald wir die jeweiligen Templates bauen –
+   damit diese Datei nicht auf einen Schlag riesig wird. */
