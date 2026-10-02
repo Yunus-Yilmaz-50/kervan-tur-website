@@ -1,7 +1,5 @@
 # Gizlilik Politikası ve KVKK Aydınlatma Metni
 
-*Taslak — yayınlamadan önce bir hukuk danışmanına gözden geçirtmeniz önerilir.*
-
 ## 1. Veri Sorumlusunun Kimliği
 
 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca veri sorumlusu:
@@ -18,8 +16,7 @@ MERSİS No: 0612061420800024
 Ticaret Sicil No: 52115
 TÜRSAB Belge No: 7483
 
-E-posta: [kervan_email alanından otomatik gelir]
-Telefon: [kervan_phone alanından otomatik gelir]
+Telefon: +90 507 66 33 626
 
 ## 2. Hizmetin Niteliği
 
