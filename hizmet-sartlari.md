@@ -1,7 +1,5 @@
 # Hizmet Şartları ve Koşulları
 
-*Taslak — yayınlamadan önce bir hukuk danışmanına gözden geçirtmeniz önerilir.*
-
 Bu şartlar, Marti Turizm (Kervan Kültür Turlari markası altında) ile hizmetlerimizden yararlanan müşteri arasındaki ilişkiye uygulanır.
 
 ## 1. Genel Hükümler
