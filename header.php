@@ -15,6 +15,9 @@
 		.kervan-nav.kervan-nav-transparent .kervan-nav-links a{ color:#fff; text-shadow:0 1px 10px rgba(0,0,0,.5); }
 		.kervan-nav .brand img{ height:44px; display:block; }
 		.kervan-nav-links{ display:flex; gap:22px; list-style:none; margin:0; padding:0; align-items:center; flex-wrap:wrap; }
+		@media(min-width:641px){
+			.kervan-nav-links{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+		}
 		.kervan-nav-links a{ text-decoration:none; color:var(--charcoal,#2B2016); font-weight:500; font-size:.98rem; }
 		.kervan-nav-links a:hover{ color:var(--clay,#BD5B3B); }
 		@media(max-width:640px){
