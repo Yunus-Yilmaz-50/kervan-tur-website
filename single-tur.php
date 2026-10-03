@@ -51,6 +51,12 @@
 .inc-columns li::before{ content:'✓'; color:var(--teal); font-weight:700; margin-right:8px; }
 .inc-columns ul.not li::before{ content:'✕'; color:#C0392B; font-weight:700; margin-right:8px; }
 @media(max-width:640px){ .inc-columns{grid-template-columns:1fr;} .inc-columns > div:first-child{padding-bottom:16px; margin-bottom:10px;} .inc-columns > div{padding-left:0;} }
+@media(max-width:480px){
+	.title-row{ flex-wrap:wrap; }
+	.title-row .price-block{ flex-basis:100%; text-align:left; margin-top:10px; }
+	.title-row .price-block .badge{ text-align:left; }
+	.title-row .price-block .price-line{ justify-content:flex-start; }
+}
 
 .notes-callout{ margin-top:32px; border-left:3px solid var(--gold); padding:4px 20px; font-size:.86rem; line-height:1.8; position:relative; }
 .notes-callout::before{ content:''; position:absolute; top:-16px; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(43,32,22,.035) 15%, rgba(43,32,22,.035) 85%, transparent); }
@@ -387,16 +393,17 @@ function heroMove(dir){
 		<label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;">Adınız Soyadınız (formu dolduran kişi)</label>
 		<input type="text" id="kervanKayitOwnName" placeholder="Ad Soyad" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; box-sizing:border-box; margin-bottom:14px;">
 
-		<?php if ( in_array( 'dunya', $group_list, true ) ) : ?>
-		<input type="text" id="kervanKayitEmail" placeholder="E-posta" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; box-sizing:border-box; margin-bottom:8px;">
-		<input type="text" id="kervanKayitAddress" placeholder="Ev adresi (sokak, posta kodu, şehir)" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; box-sizing:border-box; margin-bottom:14px;">
-		<?php endif; ?>
-
 		<label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;">Kimin için kayıt yapıyorsunuz?</label>
 		<div style="display:flex; gap:16px; margin-bottom:14px; font-size:.86rem;">
 			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim de katılıyorum</label>
 			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler)</label>
 		</div>
+
+		<?php if ( in_array( 'dunya', $group_list, true ) ) : ?>
+		<p style="font-size:.72rem; opacity:.55; margin:0 0 6px;">Dünya Turları için bir e-posta ve adres bilgisine ihtiyacımız var (herhangi birinizden yeterlidir).</p>
+		<input type="text" id="kervanKayitEmail" placeholder="E-posta" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; box-sizing:border-box; margin-bottom:8px;">
+		<input type="text" id="kervanKayitAddress" placeholder="Ev adresi (sokak, posta kodu, şehir)" style="width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; box-sizing:border-box; margin-bottom:14px;">
+		<?php endif; ?>
 
 
 		<div id="kervanKayitPersons"></div>
@@ -529,7 +536,7 @@ function kervanAddKayitRoom(){
 	var toggleBtn = document.createElement('button');
 	toggleBtn.type = 'button';
 	toggleBtn.innerHTML = '▾';
-	toggleBtn.style.cssText = 'position:absolute; right:4px; top:4px; bottom:4px; width:28px; border:none; background:none; cursor:pointer; font-size:1.15rem; opacity:.85; color:var(--charcoal,#2B2016);';
+	toggleBtn.style.cssText = 'position:absolute; right:5px; top:5px; bottom:5px; width:26px; border:none; background:rgba(0,0,0,.06); border-radius:6px; cursor:pointer; font-size:1.1rem; opacity:1; color:var(--charcoal,#2B2016);';
 
 	var dropdown = document.createElement('div');
 	dropdown.style.cssText = 'display:none; position:absolute; top:100%; left:0; right:0; margin-top:4px; background:var(--cream,#FBF6EC); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 20px -8px rgba(27,36,56,.35); z-index:5; max-height:180px; overflow-y:auto;';
