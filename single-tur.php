@@ -53,7 +53,7 @@
 @media(max-width:640px){ .inc-columns{grid-template-columns:1fr;} .inc-columns > div:first-child{padding-bottom:16px; margin-bottom:10px;} .inc-columns > div{padding-left:0;} }
 @media(max-width:480px){
 	.title-row{ flex-wrap:wrap; }
-	.title-row .price-block{ flex-basis:100%; text-align:left; margin-top:10px; }
+	.title-row .price-block{ flex-basis:100%; text-align:left; margin-top:10px; margin-bottom:18px; }
 	.title-row .price-block .badge{ text-align:left; }
 	.title-row .price-block .price-line{ justify-content:flex-start; }
 }
