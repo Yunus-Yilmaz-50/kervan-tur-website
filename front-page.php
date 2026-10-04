@@ -31,11 +31,36 @@
 </style>
 
 <?php
-$video_url = kervan_get_option( 'kervan_hero_video' );
-if ( $video_url ) :
+$video_url        = kervan_get_option( 'kervan_hero_video' );
+$video_url_mobile = kervan_get_option( 'kervan_hero_video_mobile' );
+if ( $video_url || $video_url_mobile ) :
+	$desktop_src = $video_url ? $video_url : $video_url_mobile;
+	$mobile_src  = $video_url_mobile ? $video_url_mobile : $video_url;
 ?>
 <section class="video-hero">
-	<video autoplay muted loop playsinline><source src="<?php echo esc_url( $video_url ); ?>" type="video/mp4"></video>
+	<?php if ( $desktop_src === $mobile_src ) : ?>
+	<video autoplay muted loop playsinline><source src="<?php echo esc_url( $desktop_src ); ?>" type="video/mp4"></video>
+	<?php else : ?>
+	<video id="kervanHeroVideo" autoplay muted loop playsinline></video>
+	<script>
+	(function(){
+		var v = document.getElementById('kervanHeroVideo');
+		var mq = window.matchMedia('(max-width:640px)');
+		var desktop = <?php echo wp_json_encode( esc_url_raw( $desktop_src ) ); ?>;
+		var mobile = <?php echo wp_json_encode( esc_url_raw( $mobile_src ) ); ?>;
+		function pick(){
+			var src = mq.matches ? mobile : desktop;
+			if (v.getAttribute('src') === src) { return; }
+			v.setAttribute('src', src);
+			v.load();
+			var p = v.play();
+			if (p && p.catch) { p.catch(function(){}); }
+		}
+		pick();
+		if (mq.addEventListener) { mq.addEventListener('change', pick); } else if (mq.addListener) { mq.addListener(pick); }
+	})();
+	</script>
+	<?php endif; ?>
 	<a class="btn-wa" href="<?php echo esc_url( get_post_type_archive_link( 'tur' ) ); ?>"><?php echo esc_html( kervan_get_option( 'kervan_hero_button' ) ); ?></a>
 </section>
 <?php endif; ?>
