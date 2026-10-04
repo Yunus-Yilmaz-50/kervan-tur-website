@@ -489,10 +489,12 @@ function kervan_settings_fields() {
 		'kervan_hero_title'    => array( 'label' => 'Ana Başlık (Hero)', 'type' => 'text', 'default' => "Dünyayı güvendiğiniz bir kervanla gezin.", 'group' => 'anasayfa' ),
 		'kervan_hero_subtitle' => array( 'label' => 'Alt Yazı / Slogan (Hero, buton altında)', 'type' => 'textarea', 'default' => "Gezen güzel olur, oturan gazel olur.", 'group' => 'anasayfa' ),
 		'kervan_hero_button'   => array( 'label' => 'Buton Metni (Hero)', 'type' => 'text', 'default' => '2026 & 2027 Turlarını Gör', 'group' => 'anasayfa' ),
+		'kervan_hero_button_show' => array( 'label' => 'Videonun içindeki Buton', 'type' => 'select', 'options' => array( 'show' => 'Göster', 'hide' => 'Gizle' ), 'default' => 'show', 'group' => 'anasayfa' ),
 		'kervan_facts_list'    => array( 'label' => 'Fakta Rakamları (Sayı|Metin, her satıra bir tane)', 'type' => 'textarea_big', 'default' => "34.984|Mutlu Gurbetçi\n82|Farklı Şehir\n563|Tamamlanan Tur\n2011|'den beri yolda\n4,8 ★|Google Puanı", 'group' => 'anasayfa' ),
 		'kervan_farki_items'   => array( 'label' => 'Kervan Kültür Turları Farkı (her satıra bir madde)', 'type' => 'textarea_big', 'default' => "🏨 Turlarımızda bölgenin en iyi otelleri ve restoranları\n🤲 Namaz vakitlerine riayet gösterilir\n🚫 Turlarımızda extra ücret yok\n💳 Tur ücretinde ödeme kolaylığı\n✈️ Tüm havaalanlarından uçuş imkanı\n🎧 Rehber anlatımı herkese özel kulaklıkla", 'group' => 'anasayfa' ),
 		'kervan_hero_video'    => array( 'label' => 'Hero Arkaplan Videosu (mp4 dosya linki — boş bırakılırsa video gösterilmez). Videoyu Medya kütüphanesine yükleyip linkini buraya yapıştırın.', 'type' => 'text', 'default' => '', 'group' => 'anasayfa' ),
 		'kervan_hero_video_mobile' => array( 'label' => 'Hero Arkaplan Videosu — MOBİL (dikey 9:16 mp4 linki, isteğe bağlı — boş bırakılırsa telefonda da yukarıdaki video kullanılır)', 'type' => 'text', 'default' => '', 'group' => 'anasayfa' ),
+		'kervan_hero_mode' => array( 'label' => 'Hero Video Görünümü', 'type' => 'select', 'options' => array( 'cover' => 'Tam ekran, kırpılmış (bilgisayarda tüm ekran; telefonda mobil video yoksa yatay şerit)', 'cinema' => 'Sinematik: tam ekran, videonun tamamı görünür, üstte ve altta siyah bantlar' ), 'default' => 'cover', 'group' => 'anasayfa' ),
 		'kervan_extra_page_id' => array( 'label' => 'Ek Bölüm (Anasayfa) – normal WordPress sayfa editörüyle serbestçe düzenlenebilir bir alan. Yeni kutu/buton/resim eklemek için: önce Sayfalar > Yeni Ekle ile bir sayfa oluşturun, sonra burada seçin.', 'type' => 'page_select', 'default' => '', 'group' => 'anasayfa' ),
 
 		'kervan_whatsapp'      => array( 'label' => 'WhatsApp Numarası (örn. 491624936027)', 'type' => 'text', 'default' => '491624936027', 'group' => 'genel' ),
@@ -552,6 +554,12 @@ function kervan_render_settings_page( $group, $title, $desc ) {
 			echo '<textarea name="' . esc_attr( $key ) . '" rows="8" style="width:100%;max-width:700px;">' . esc_textarea( $value ) . '</textarea>';
 		} elseif ( $field['type'] === 'textarea' ) {
 			echo '<textarea name="' . esc_attr( $key ) . '" rows="3" style="width:100%;max-width:700px;">' . esc_textarea( $value ) . '</textarea>';
+		} elseif ( $field['type'] === 'select' ) {
+			echo '<select name="' . esc_attr( $key ) . '" style="width:100%;max-width:700px;">';
+			foreach ( $field['options'] as $opt_value => $opt_label ) {
+				echo '<option value="' . esc_attr( $opt_value ) . '" ' . selected( $value, $opt_value, false ) . '>' . esc_html( $opt_label ) . '</option>';
+			}
+			echo '</select>';
 		} elseif ( $field['type'] === 'page_select' ) {
 			echo '<select name="' . esc_attr( $key ) . '" style="width:100%;max-width:700px;"><option value="">— Yok —</option>';
 			foreach ( get_pages() as $page ) {
