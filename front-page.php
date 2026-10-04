@@ -3,8 +3,16 @@
 <style>
 .video-hero{ position:relative; height:100vh; overflow:hidden; background:linear-gradient(135deg, var(--ink) 0%, #2A2038 55%, var(--clay-dark) 130%); display:flex; align-items:flex-end; justify-content:center; padding-bottom:64px; margin-top:-64px; }
 @media(max-width:640px){ .video-hero{ margin-top:-116px; } }
+@media(max-width:640px){
+	.video-hero.video-hero--wide{ height:auto; display:block; padding:116px 0 0; }
+	.video-hero.video-hero--wide video{ position:relative; inset:auto; display:block; width:100%; height:auto; aspect-ratio:16/9; object-fit:cover; }
+	.video-hero.video-hero--wide .btn-wa{ position:absolute; left:50%; bottom:16px; transform:translateX(-50%); font-size:.95rem; padding:13px 26px; white-space:nowrap; }
+}
 .video-hero video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .video-hero::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,.2) 0%, rgba(0,0,0,.05) 50%, rgba(27,36,56,.55) 100%); }
+.video-hero.video-hero--cinema{ background:#000; }
+.video-hero.video-hero--cinema video{ object-fit:contain; }
+.video-hero.video-hero--cinema::after{ background:linear-gradient(180deg, rgba(0,0,0,0) 70%, rgba(0,0,0,.55) 100%); }
 .video-hero .btn-wa{ position:relative; z-index:2; font-size:1.1rem; padding:18px 38px; box-shadow:0 14px 34px -10px rgba(0,0,0,.5); }
 
 .farki-grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; max-width:900px; margin:20px auto 0; padding:0 20px; }
@@ -37,7 +45,8 @@ if ( $video_url || $video_url_mobile ) :
 	$desktop_src = $video_url ? $video_url : $video_url_mobile;
 	$mobile_src  = $video_url_mobile ? $video_url_mobile : $video_url;
 ?>
-<section class="video-hero">
+<?php $hero_cinema = ( kervan_get_option( 'kervan_hero_mode' ) === 'cinema' ); ?>
+<section class="video-hero<?php echo $hero_cinema ? ' video-hero--cinema' : ( ( $desktop_src === $mobile_src ) ? ' video-hero--wide' : '' ); ?>">
 	<?php if ( $desktop_src === $mobile_src ) : ?>
 	<video autoplay muted loop playsinline><source src="<?php echo esc_url( $desktop_src ); ?>" type="video/mp4"></video>
 	<?php else : ?>
@@ -61,7 +70,9 @@ if ( $video_url || $video_url_mobile ) :
 	})();
 	</script>
 	<?php endif; ?>
+	<?php if ( kervan_get_option( 'kervan_hero_button_show' ) !== 'hide' ) : ?>
 	<a class="btn-wa" href="<?php echo esc_url( get_post_type_archive_link( 'tur' ) ); ?>"><?php echo esc_html( kervan_get_option( 'kervan_hero_button' ) ); ?></a>
+	<?php endif; ?>
 </section>
 <?php endif; ?>
 
@@ -69,7 +80,7 @@ if ( $video_url || $video_url_mobile ) :
 	<div class="eyebrow"><?php echo esc_html( kervan_get_option( 'kervan_hero_eyebrow' ) ); ?></div>
 	<h1><?php echo esc_html( kervan_get_option( 'kervan_hero_title' ) ); ?></h1>
 	<p class="hero-tagline"><?php echo esc_html( kervan_get_option( 'kervan_hero_subtitle' ) ); ?></p>
-	<?php if ( ! $video_url ) : ?>
+	<?php if ( ! $video_url && ! $video_url_mobile ) : ?>
 	<a class="btn-wa" href="<?php echo esc_url( get_post_type_archive_link( 'tur' ) ); ?>"><?php echo esc_html( kervan_get_option( 'kervan_hero_button' ) ); ?></a>
 	<?php endif; ?>
 
