@@ -514,6 +514,7 @@ function kervan_settings_fields() {
 		'kervan_facebook'      => array( 'label' => 'Facebook Linki', 'type' => 'text', 'default' => 'https://www.facebook.com/kervankulturturlari', 'group' => 'genel' ),
 		'kervan_facebook_name' => array( 'label' => 'Facebook Görünen Ad', 'type' => 'text', 'default' => 'Kervan Kültür Turlari', 'group' => 'genel' ),
 		'kervan_google_url'    => array( 'label' => 'Google Değerlendirme Linki', 'type' => 'text', 'default' => 'https://www.google.com/search?q=Kervan+K%C3%BClt%C3%BCr+Turlari#lrd=0x47bf2de89e120703:0xf1dea6021771e610,3', 'group' => 'genel' ),
+		'kervan_redirect_map'  => array( 'label' => 'Eski linkler → yeni sayfa (her satıra bir tane: /eski-yol|/yeni-yol — örn. /eski-turlar/|/turlar/). Google\'da eski sitelink\'e tıklayanlar otomatik yeni sayfaya yönlendirilir.', 'type' => 'textarea_big', 'default' => '', 'group' => 'genel' ),
 		'kervan_avrupatur_url' => array( 'label' => 'avrupatur.de Linki', 'type' => 'text', 'default' => 'https://avrupatur.de/', 'group' => 'genel' ),
 		'kervan_ga_id'         => array( 'label' => 'Google Analytics Measurement ID (örn. G-XXXXXXX) — boş bırakılırsa istatistik takibi kapalı olur', 'type' => 'text', 'default' => 'G-MZZDWSYY59', 'group' => 'genel' ),
 
@@ -1075,3 +1076,39 @@ function kervan_restrict_test_subdomain() {
 	}
 }
 add_action( 'template_redirect', 'kervan_restrict_test_subdomain' );
+
+// ---------- Alte Adressen (z. B. Google-Sitelinks der früheren Seite) per 301 auf neue Seiten leiten ----------
+function kervan_handle_old_url_redirects() {
+	if ( ! is_404() ) {
+		return;
+	}
+	$map = kervan_get_option( 'kervan_redirect_map' );
+	if ( ! $map ) {
+		return;
+	}
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$normalize = function ( $u ) {
+		$u = strtolower( trim( $u ) );
+		$u = preg_replace( '#^https?://[^/]+#', '', $u );
+		return preg_replace( '#/+$#', '', $u );
+	};
+	$req_full = $normalize( $uri );
+	$req_path = $normalize( strtok( $uri, '?' ) );
+	foreach ( preg_split( '/\r\n|\r|\n/', $map ) as $line ) {
+		$parts = array_map( 'trim', explode( '|', $line, 2 ) );
+		if ( count( $parts ) !== 2 || $parts[0] === '' || $parts[1] === '' ) {
+			continue;
+		}
+		$from = $normalize( $parts[0] );
+		if ( $from === '' ) {
+			continue;
+		}
+		if ( $from === $req_full || $from === $req_path ) {
+			$to     = $parts[1];
+			$target = ( strpos( $to, 'http' ) === 0 ) ? $to : home_url( '/' . ltrim( $to, '/' ) );
+			wp_redirect( esc_url_raw( $target ), 301 );
+			exit;
+		}
+	}
+}
+add_action( 'template_redirect', 'kervan_handle_old_url_redirects' );
