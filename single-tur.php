@@ -395,8 +395,8 @@ function heroMove(dir){
 
 		<label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;">Kimin için kayıt yapıyorsunuz?</label>
 		<div style="display:flex; gap:16px; margin-bottom:14px; font-size:.86rem;">
-			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim de katılıyorum</label>
-			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler)</label>
+			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim için</label>
+			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler) için</label>
 		</div>
 
 		<?php if ( in_array( 'dunya', $group_list, true ) ) : ?>
