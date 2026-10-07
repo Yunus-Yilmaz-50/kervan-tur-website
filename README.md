@@ -1,6 +1,6 @@
 # Kervan Kültür Turları – Website
 
-Individuelles WordPress-Theme für ein Reiseunternehmen, von Grund auf entwickelt.
+Individuelles WordPress-Theme für ein Reiseunternehmen, von Grund auf entwickelt : kervan-tur.com
 
 ## Features
 - Eigenes Tour-Verwaltungssystem mit Filtern (Kontinente, Zeitraum, Sortieren, Favoriten)
