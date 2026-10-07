@@ -37,6 +37,9 @@
 .price-block .price{ font-family:'Fraunces',serif; font-size:1.7rem; font-weight:700; display:block; }
 .price-line{ display:flex; align-items:baseline; justify-content:flex-end; gap:6px; }
 .price-line small{ font-size:.78rem; font-weight:400; opacity:.65; }
+.date-list{ margin:0 0 1em; line-height:1.7; }
+.date-op{ font-size:.82rem; opacity:.65; white-space:nowrap; }
+.date-full{ color:#E00000; font-weight:700; text-transform:uppercase; }
 .price-block .badge{ margin-top:4px; text-align:right; font-size:.8rem; font-weight:700; color:#E00000; }
 
 .section-eyebrow{ font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.1em; font-size:.8rem; font-weight:700; color:var(--clay-dark); margin-bottom:8px; display:block; }
@@ -109,7 +112,14 @@
 	$days        = get_post_meta( get_the_ID(), 'kervan_days', true );
 	$badge       = get_post_meta( get_the_ID(), 'kervan_badge', true );
 	$pins        = kervan_places_pins( get_the_ID() );
-	$dates       = kervan_lines_to_array( get_post_meta( get_the_ID(), 'kervan_dates', true ) );
+	$dates_lines = kervan_lines_to_array( get_post_meta( get_the_ID(), 'kervan_dates', true ) );
+	$dates       = array();
+	$date_ops    = array();
+	foreach ( $dates_lines as $dk => $dline ) {
+		$dparts           = kervan_split_date_operator( $dline );
+		$dates[ $dk ]    = $dparts[0];
+		$date_ops[ $dk ] = $dparts[1];
+	}
 	$included    = kervan_lines_to_array( get_post_meta( get_the_ID(), 'kervan_included', true ) );
 	$notincluded = kervan_lines_to_array( get_post_meta( get_the_ID(), 'kervan_not_included', true ) );
 	$notes       = kervan_lines_to_array( get_post_meta( get_the_ID(), 'kervan_notes', true ) );
@@ -180,7 +190,11 @@
 
 		<?php if ( $dates ) : ?>
 		<span class="section-eyebrow" style="margin-top:0px;"><?php echo esc_html( 'Tarihler' ); ?></span>
-		<p style="margin-top:0;"><?php echo implode( '<br>', array_map( 'esc_html', $dates ) ); ?></p>
+		<div class="date-list">
+			<?php foreach ( $dates as $dk => $d ) : ?>
+			<div class="date-line"><?php echo preg_replace( '/\((dolu|doldu|full)\)/i', '<span class="date-full">($1)</span>', esc_html( $d ) ); ?><?php if ( ! empty( $date_ops[ $dk ] ) ) : ?> <span class="date-op">· <?php echo esc_html( $date_ops[ $dk ] ); ?></span><?php endif; ?></div>
+			<?php endforeach; ?>
+		</div>
 		<?php endif; ?>
 
 		<?php
@@ -314,6 +328,7 @@
 				$r_badge = get_post_meta( $r_id, 'kervan_badge', true );
 				$r_pins = kervan_places_pins( $r_id );
 				$r_dates = kervan_lines_to_array( get_post_meta( $r_id, 'kervan_dates', true ) );
+				$r_dates = array_values( array_map( function ( $l ) { $p = kervan_split_date_operator( $l ); return $p[0]; }, $r_dates ) );
 				$pins_list = array_filter( array_map( 'trim', preg_split( '/[·,]/', $r_pins ) ) );
 				$pins_txt = implode( ' · ', array_slice( $pins_list, 0, 4 ) ) . ( count( $pins_list ) > 4 ? ' +' . ( count( $pins_list ) - 4 ) : '' );
 			?>
@@ -395,8 +410,8 @@ function heroMove(dir){
 
 		<label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;">Kimin için kayıt yapıyorsunuz?</label>
 		<div style="display:flex; gap:16px; margin-bottom:14px; font-size:.86rem;">
-			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim için</label>
-			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler) için</label>
+			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim de katılıyorum</label>
+			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler)</label>
 		</div>
 
 		<?php if ( in_array( 'dunya', $group_list, true ) ) : ?>
