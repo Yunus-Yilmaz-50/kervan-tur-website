@@ -8,6 +8,7 @@ function kervan_get_tour_data( $id ) {
 	$years = array_filter( array_map( 'trim', explode( ',', get_post_meta( $id, 'kervan_year', true ) ) ) );
 	if ( ! $years ) $years = array( date( 'Y' ) );
 	$dates_raw = kervan_lines_to_array( get_post_meta( $id, 'kervan_dates', true ) );
+	$dates_raw = array_values( array_map( function ( $l ) { $p = kervan_split_date_operator( $l ); return $p[0]; }, $dates_raw ) );
 	$dates = array();
 	foreach ( $dates_raw as $d ) {
 		$full = ( stripos( $d, '(dolu)' ) !== false || stripos( $d, '(full)' ) !== false );
@@ -120,7 +121,7 @@ function kervan_render_ticket( $t, $post, $featured = false ) {
 				$shown_dates = array_slice( $t['dates'], 0, 2 );
 			?>
 			<div class="ticket-dates">📅
-				<?php foreach ( $shown_dates as $i => $d ) : ?><?php echo $i > 0 ? ' <span style="opacity:.4;">|</span> ' : ''; ?><?php echo esc_html( $d['d'] ); ?><?php if ( $d['full'] ) echo ' <span style="color:var(--clay-dark);font-weight:700;">(DOLU)</span>'; ?><?php endforeach; ?>
+				<?php foreach ( $shown_dates as $i => $d ) : ?><?php echo $i > 0 ? ' <span style="opacity:.4;">|</span> ' : ''; ?><?php echo esc_html( $d['d'] ); ?><?php if ( $d['full'] ) echo ' <span style="color:#E00000;font-weight:700;">(DOLU)</span>'; ?><?php endforeach; ?>
 				<?php if ( count( $t['dates'] ) > 2 ) : ?><span class="pins-extra">+<?php echo count( $t['dates'] ) - 2; ?></span><?php endif; ?>
 			</div>
 			<?php endif; ?>
