@@ -201,7 +201,7 @@ function kervan_render_tour_meta_box( $post ) {
 
 	// Bildergalerie über den eingebauten WordPress-Medien-Uploader
 	$gallery_ids = get_post_meta( $post->ID, '_kervan_gallery', true );
-	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Fotoğraf Galerisi (Hauptbild oben rechts unter "Titelbild" separat einstellen)</label>';
+	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Fotoğraf Galerisi (ana görsel: sağdaki „Titelbild“ kutusu)</label>';
 	echo '<input type="hidden" id="kervan_gallery_ids" name="kervan_gallery_ids" value="' . esc_attr( $gallery_ids ) . '">';
 	echo '<div id="kervan_gallery_preview" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; padding-top:8px;"></div>';
 	echo '<script>window.kervanGalleryThumbs = window.kervanGalleryThumbs || {};';
@@ -225,15 +225,15 @@ function kervan_render_tour_meta_box( $post ) {
 	$group_list = $group ? explode( ',', $group ) : array( 'turkiye' );
 	echo '<label style="margin-right:18px;"><input type="checkbox" name="kervan_group[]" value="turkiye" ' . checked( in_array( 'turkiye', $group_list, true ), true, false ) . '> Türkiye Turları (Mustafa Yılmaz)</label>';
 	echo '<label><input type="checkbox" name="kervan_group[]" value="dunya" ' . checked( in_array( 'dunya', $group_list, true ), true, false ) . '> Dünya Turları (Arif + Nuran Yılmaz)</label></p>';
-	echo '<p style="opacity:.7;font-size:.85rem;">İkisini de işaretlerseniz üçü de gösterilir — hangi tarihin kime ait olduğunu NOT alanında belirtin.</p>';
+	echo '<p style="opacity:.7;font-size:.85rem;">İkisi seçilirse üç kişi de görünür. Tarihe göre operatör için Tarihler alanında “|” kullanın.</p>';
 
 	$fields = array(
 		'kervan_price'         => 'Fiyat (örn. 1850€)',
 		'kervan_days'          => 'Gün Sayısı (örn. 7)',
-		'kervan_year'          => 'Yıl(lar) — virgülle ayırın, örn: 2026,2027',
-		'kervan_badge'         => 'Rozet metni (örn. SON 2 KİŞİ) – boş bırakılabilir',
-		'kervan_highlight'     => 'Öne çıkar mı? (evet / hayır)',
-		'kervan_highlight_until' => 'Öne çıkarma bitiş tarihi (YYYY-AA-GG) – istediğiniz kadar uzun/kısa olabilir, 15 gün sadece bir öneridir',
+		'kervan_year'          => 'Yıl(lar) (örn. 2026 veya 2026,2027)',
+		'kervan_badge'         => 'Rozet (örn. SON 2 KİŞİ, YENİ — özel: DOLU, GERÇEKLEŞTİ — boş olabilir)',
+		'kervan_highlight'     => 'Öne çıkar? (evet / hayır)',
+		'kervan_highlight_until' => 'Öne çıkarma bitiş tarihi (örn. 2026-12-31)',
 	);
 	foreach ( $fields as $key => $label ) {
 		$value = get_post_meta( $post->ID, $key, true );
@@ -242,11 +242,11 @@ function kervan_render_tour_meta_box( $post ) {
 	}
 
 	$textareas = array(
-		'kervan_dates'        => 'Tarihler (her satıra bir tarih, örn. 07.02–13.02.2026)',
-		'kervan_places'       => 'Gezilecek Yerler — bir yer adı yazın (örn. Kayseri), altına varsa alt maddeleri "-" ile başlayarak yazın (örn. - Erciyes Dağı). Alt madde yazmazsanız sadece yer adı gösterilir. Çizgisiz bir not için satırı ">" ile başlatın (örn. > Transfer dahil) — bu not kartlarda görünmez.',
-		'kervan_included'     => 'Fiyata Dahil (her satıra bir madde)',
-		'kervan_not_included' => 'Fiyata Dahil Olmayan (her satıra bir madde)',
-		'kervan_notes'        => 'NOT (her satıra bir uyarı)',
+		'kervan_dates'        => 'Tarihler — satır başına bir tarih (örn. 22.05–30.05.2027). “(dolu)” kırmızı görünür. “|” işaretinden sonrası SADECE tur sayfasında görünür (örn. 22.05–30.05.2027 | Tur operatörü: Fatih Yılmaz)',
+		'kervan_places'       => 'Gezilecek Yerler — yer adı yazın (örn. Kayseri); alt madde için “-” (örn. - Erciyes Dağı); not için “>” (örn. > Transfer dahil — kartlarda görünmez)',
+		'kervan_included'     => 'Fiyata Dahil (satır başına bir madde, örn. Otel konaklaması)',
+		'kervan_not_included' => 'Fiyata Dahil Olmayan (satır başına bir madde, örn. Uçak bileti)',
+		'kervan_notes'        => 'NOT (satır başına bir uyarı, örn. Pasaport 6 ay geçerli olmalı)',
 	);
 	foreach ( $textareas as $key => $label ) {
 		$value = get_post_meta( $post->ID, $key, true );
@@ -382,6 +382,23 @@ function kervan_lines_to_array( $text ) {
 }
 
 /**
+ * Trennt eine Terminzeile in Datum und (optionalen) Tur-Operatör: "22.05–30.05.2027 | Fatih Yılmaz".
+ * Ein "(dolu)"-Vermerk hinter dem Operator wird dem Datum zugeordnet.
+ */
+function kervan_split_date_operator( $line ) {
+	$parts = explode( '|', (string) $line, 2 );
+	$date  = trim( $parts[0] );
+	$op    = isset( $parts[1] ) ? trim( $parts[1] ) : '';
+	if ( $op !== '' && preg_match( '/\((dolu|full)\)/i', $op, $m ) ) {
+		$op = trim( preg_replace( '/\s*\((dolu|full)\)/i', '', $op ) );
+		if ( ! preg_match( '/\((dolu|full)\)/i', $date ) ) {
+			$date .= ' (' . strtolower( $m[1] ) . ')';
+		}
+	}
+	return array( $date, $op );
+}
+
+/**
  * Wandelt den Gezilecek-Yerler-Text in eine Liste von Orten mit optionalen Unterpunkten um.
  * Eine Zeile ohne "-" davor = neuer Ort. Eine Zeile mit "-" davor = Unterpunkt des letzten Orts.
  */
@@ -468,15 +485,15 @@ function kervan_add_settings_page() {
 		'Kervan Ayarları',
 		'manage_options',
 		'kervan-genel',
-		function() { kervan_render_settings_page( 'genel', 'Kervan Genel', 'Site genelinde (Footer, İletişim kutuları, sosyal medya vb.) kullanılan bilgiler.' ); },
+		function() { kervan_render_settings_page( 'genel', 'Kervan Genel', 'Tüm sitede kullanılan bilgiler (iletişim, sosyal medya, yönlendirmeler).' ); },
 		'dashicons-palmtree',
 		3
 	);
-	add_submenu_page( 'kervan-genel', 'Anasayfa Ayarları', 'Anasayfa', 'manage_options', 'kervan-anasayfa', function() { kervan_render_settings_page( 'anasayfa', 'Anasayfa Ayarları', 'Sadece anasayfada görünen içerikler (hero, video, rakamlar, Kervan Kültür Turları Farkı).' ); } );
+	add_submenu_page( 'kervan-genel', 'Anasayfa Ayarları', 'Anasayfa', 'manage_options', 'kervan-anasayfa', function() { kervan_render_settings_page( 'anasayfa', 'Anasayfa Ayarları', 'Anasayfa içerikleri (hero, video, rakamlar, Fark bölümü).' ); } );
 	add_submenu_page( 'kervan-genel', 'İletişim Ayarları', 'İletişim', 'manage_options', 'kervan-iletisim-ayarlari', function() { kervan_render_settings_page( 'iletisim', 'İletişim Ayarları', 'Sadece İletişim sayfasında görünen ek metinler.' ); } );
 
 	// Turlar ayarları, Turlar menüsünün kendi altına eklenir
-	add_submenu_page( 'edit.php?post_type=tur', 'Filtreler ve Kayıt', 'Filtreler ve Kayıt', 'manage_options', 'kervan-turlar-ayarlari', function() { kervan_render_settings_page( 'turlar', 'Filtreler ve Kayıt', 'Turlar sayfası filtreleri ve "Nasıl Kayıt Olurum?" görselleriyle ilgili ayarlar.' ); } );
+	add_submenu_page( 'edit.php?post_type=tur', 'Filtreler ve Kayıt', 'Filtreler ve Kayıt', 'manage_options', 'kervan-turlar-ayarlari', function() { kervan_render_settings_page( 'turlar', 'Filtreler ve Kayıt', 'Turlar sayfası filtre metinleri ve Kayıt Formu görselleri.' ); } );
 }
 add_action( 'admin_menu', 'kervan_add_settings_page' );
 
@@ -492,10 +509,10 @@ function kervan_settings_fields() {
 		'kervan_hero_button_show' => array( 'label' => 'Videonun içindeki Buton', 'type' => 'select', 'options' => array( 'show' => 'Göster', 'hide' => 'Gizle' ), 'default' => 'show', 'group' => 'anasayfa' ),
 		'kervan_facts_list'    => array( 'label' => 'Fakta Rakamları (Sayı|Metin, her satıra bir tane)', 'type' => 'textarea_big', 'default' => "34.984|Mutlu Gurbetçi\n82|Farklı Şehir\n563|Tamamlanan Tur\n2011|'den beri yolda\n4,8 ★|Google Puanı", 'group' => 'anasayfa' ),
 		'kervan_farki_items'   => array( 'label' => 'Kervan Kültür Turları Farkı (her satıra bir madde)', 'type' => 'textarea_big', 'default' => "🏨 Turlarımızda bölgenin en iyi otelleri ve restoranları\n🤲 Namaz vakitlerine riayet gösterilir\n🚫 Turlarımızda extra ücret yok\n💳 Tur ücretinde ödeme kolaylığı\n✈️ Tüm havaalanlarından uçuş imkanı\n🎧 Rehber anlatımı herkese özel kulaklıkla", 'group' => 'anasayfa' ),
-		'kervan_hero_video'    => array( 'label' => 'Hero Arkaplan Videosu (mp4 dosya linki — boş bırakılırsa video gösterilmez). Videoyu Medya kütüphanesine yükleyip linkini buraya yapıştırın.', 'type' => 'text', 'default' => '', 'group' => 'anasayfa' ),
-		'kervan_hero_video_mobile' => array( 'label' => 'Hero Arkaplan Videosu — MOBİL (dikey 9:16 mp4 linki, isteğe bağlı — boş bırakılırsa telefonda da yukarıdaki video kullanılır)', 'type' => 'text', 'default' => '', 'group' => 'anasayfa' ),
-		'kervan_hero_mode' => array( 'label' => 'Hero Video Görünümü', 'type' => 'select', 'options' => array( 'cover' => 'Tam ekran, kırpılmış (bilgisayarda tüm ekran; telefonda mobil video yoksa yatay şerit)', 'cinema' => 'Sinematik: tam ekran, videonun tamamı görünür, üstte ve altta siyah bantlar' ), 'default' => 'cover', 'group' => 'anasayfa' ),
-		'kervan_extra_page_id' => array( 'label' => 'Ek Bölüm (Anasayfa) – normal WordPress sayfa editörüyle serbestçe düzenlenebilir bir alan. Yeni kutu/buton/resim eklemek için: önce Sayfalar > Yeni Ekle ile bir sayfa oluşturun, sonra burada seçin.', 'type' => 'page_select', 'default' => '', 'group' => 'anasayfa' ),
+		'kervan_hero_video'    => array( 'label' => 'Hero Videosu — PC (mp4 linki, örn. https://…/hero.mp4 — boşsa video yok)', 'type' => 'text', 'default' => '', 'group' => 'anasayfa' ),
+		'kervan_hero_video_mobile' => array( 'label' => 'Hero Videosu — Mobil (dikey mp4 linki, isteğe bağlı — boşsa PC videosu kullanılır)', 'type' => 'text', 'default' => '', 'group' => 'anasayfa' ),
+		'kervan_hero_mode' => array( 'label' => 'Hero Video Görünümü', 'type' => 'select', 'options' => array( 'cover' => 'Tam ekran (kırpılır; telefonda mobil video yoksa yatay şerit)', 'cinema' => 'Sinematik (video tam görünür, üstte ve altta siyah bant)' ), 'default' => 'cover', 'group' => 'anasayfa' ),
+		'kervan_extra_page_id' => array( 'label' => 'Ek Bölüm (Anasayfa) — Sayfalar > Yeni Ekle ile bir sayfa oluşturup burada seçin; içeriği o sayfada düzenlersiniz', 'type' => 'page_select', 'default' => '', 'group' => 'anasayfa' ),
 
 		'kervan_whatsapp'      => array( 'label' => 'WhatsApp Numarası (örn. 491624936027)', 'type' => 'text', 'default' => '491624936027', 'group' => 'genel' ),
 		'kervan_wa_channel'    => array( 'label' => 'WhatsApp Kanal Linki', 'type' => 'text', 'default' => 'https://whatsapp.com/channel/0029VaFKuQwLNSa59Zjzpx28', 'group' => 'genel' ),
@@ -507,20 +524,20 @@ function kervan_settings_fields() {
 		'kervan_contact2_name' => array( 'label' => 'İletişim Kişisi 2 — Ad', 'type' => 'text', 'default' => 'Arif Yılmaz', 'group' => 'genel' ),
 		'kervan_contact2_phone' => array( 'label' => 'İletişim Kişisi 2 — Telefon', 'type' => 'text', 'default' => '+49 176 83085180', 'group' => 'genel' ),
 		'kervan_contact2_label' => array( 'label' => 'İletişim Kişisi 2 — Sorumluluk', 'type' => 'text', 'default' => 'Dünya Turları', 'group' => 'genel' ),
-		'kervan_contact3_name' => array( 'label' => 'İletişim Kişisi 3 — Ad (sadece Dünya Turları rezervasyonlarında ek olarak gösterilir)', 'type' => 'text', 'default' => 'Nuran Yılmaz', 'group' => 'genel' ),
+		'kervan_contact3_name' => array( 'label' => 'İletişim Kişisi 3 — Ad (sadece Dünya Turları için)', 'type' => 'text', 'default' => 'Nuran Yılmaz', 'group' => 'genel' ),
 		'kervan_contact3_phone' => array( 'label' => 'İletişim Kişisi 3 — Telefon', 'type' => 'text', 'default' => '+49 174 7846947', 'group' => 'genel' ),
 		'kervan_instagram'     => array( 'label' => 'Instagram Linki', 'type' => 'text', 'default' => 'https://www.instagram.com/kervan_kultur_turlari', 'group' => 'genel' ),
 		'kervan_instagram_handle' => array( 'label' => 'Instagram Görünen Ad', 'type' => 'text', 'default' => 'kervan_kultur_turlari', 'group' => 'genel' ),
 		'kervan_facebook'      => array( 'label' => 'Facebook Linki', 'type' => 'text', 'default' => 'https://www.facebook.com/kervankulturturlari', 'group' => 'genel' ),
 		'kervan_facebook_name' => array( 'label' => 'Facebook Görünen Ad', 'type' => 'text', 'default' => 'Kervan Kültür Turlari', 'group' => 'genel' ),
 		'kervan_google_url'    => array( 'label' => 'Google Değerlendirme Linki', 'type' => 'text', 'default' => 'https://www.google.com/search?q=Kervan+K%C3%BClt%C3%BCr+Turlari#lrd=0x47bf2de89e120703:0xf1dea6021771e610,3', 'group' => 'genel' ),
-		'kervan_redirect_map'  => array( 'label' => 'Eski linkler → yeni sayfa (her satıra bir tane: /eski-yol|/yeni-yol — örn. /eski-turlar/|/turlar/). Google\'da eski sitelink\'e tıklayanlar otomatik yeni sayfaya yönlendirilir.', 'type' => 'textarea_big', 'default' => '', 'group' => 'genel' ),
+		'kervan_redirect_map'  => array( 'label' => 'Eski linkler → yeni sayfa (satır başına bir tane, örn. /eski-turlar/|/turlar/)', 'type' => 'textarea_big', 'default' => '', 'group' => 'genel' ),
 		'kervan_avrupatur_url' => array( 'label' => 'avrupatur.de Linki', 'type' => 'text', 'default' => 'https://avrupatur.de/', 'group' => 'genel' ),
-		'kervan_ga_id'         => array( 'label' => 'Google Analytics Measurement ID (örn. G-XXXXXXX) — boş bırakılırsa istatistik takibi kapalı olur', 'type' => 'text', 'default' => 'G-MZZDWSYY59', 'group' => 'genel' ),
+		'kervan_ga_id'         => array( 'label' => 'Google Analytics ID (örn. G-XXXXXXXXXX — boşsa takip kapalı)', 'type' => 'text', 'default' => 'G-MZZDWSYY59', 'group' => 'genel' ),
 
-		'kervan_filter_translations' => array( 'label' => 'Turlar Sayfası Filtre Metinleri — Almanca Çeviriler (format: Türkçe|Almanca, her satıra bir tane, istediğiniz gibi ekleyin/silin)', 'type' => 'textarea_big', 'default' => "Kıta|Kontinent\nTüm Kıtalar|Alle Kontinente\nTarih Aralığı|Zeitraum\nSırala|Sortieren\nFiltrele|Filtern\nTur ara…|Tour suchen…\nFiltreleri Temizle|Filter zurücksetzen\nBu filtreye uygun tur yok.|Für diesen Filter sind keine Touren verfügbar.\nVarsayılan|Standard\nFiyat: Düşükten Yükseğe|Preis: Aufsteigend\nFiyat: Yüksekten Düşüğe|Preis: Absteigend\nTarih: Yakından Uzağa|Datum: Bald zu Später\nTarih: Uzaktan Yakına|Datum: Später zu Bald\nÖnce: Türkiye Turları|Zuerst: Türkei-Touren\nÖnce: Dünya Turları|Zuerst: Welt-Touren\nKıtaya Göre (A-Z)|Nach Kontinent (A-Z)", 'group' => 'turlar' ),
-		'kervan_kayit_bilgi_image_tr' => array( 'label' => '"Nasıl Kayıt Olurum?" Açıklama Görseli — Türkiye Turları için', 'type' => 'image', 'default' => '', 'group' => 'turlar' ),
-		'kervan_kayit_bilgi_image_dunya' => array( 'label' => '"Nasıl Kayıt Olurum?" Açıklama Görseli — Dünya Turları için', 'type' => 'image', 'default' => '', 'group' => 'turlar' ),
+		'kervan_filter_translations' => array( 'label' => 'Filtre Metinleri — Almanca Çeviri (örn. Ocak|Januar, satır başına bir tane)', 'type' => 'textarea_big', 'default' => "Kıta|Kontinent\nTüm Kıtalar|Alle Kontinente\nTarih Aralığı|Zeitraum\nSırala|Sortieren\nFiltrele|Filtern\nTur ara…|Tour suchen…\nFiltreleri Temizle|Filter zurücksetzen\nBu filtreye uygun tur yok.|Für diesen Filter sind keine Touren verfügbar.\nVarsayılan|Standard\nFiyat: Düşükten Yükseğe|Preis: Aufsteigend\nFiyat: Yüksekten Düşüğe|Preis: Absteigend\nTarih: Yakından Uzağa|Datum: Bald zu Später\nTarih: Uzaktan Yakına|Datum: Später zu Bald\nÖnce: Türkiye Turları|Zuerst: Türkei-Touren\nÖnce: Dünya Turları|Zuerst: Welt-Touren\nKıtaya Göre (A-Z)|Nach Kontinent (A-Z)", 'group' => 'turlar' ),
+		'kervan_kayit_bilgi_image_tr' => array( 'label' => 'Kayıt Formu Görseli — Türkiye Turları (“Kayıt Formu” bağlantısında açılır)', 'type' => 'image', 'default' => '', 'group' => 'turlar' ),
+		'kervan_kayit_bilgi_image_dunya' => array( 'label' => 'Kayıt Formu Görseli — Dünya Turları (“Kayıt Formu” bağlantısında açılır)', 'type' => 'image', 'default' => '', 'group' => 'turlar' ),
 	);
 }
 
