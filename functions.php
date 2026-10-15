@@ -10,39 +10,58 @@
 function kervan_setup() {
 	add_theme_support( 'title-tag' );
 	add_theme_support( 'post-thumbnails' ); // Titelbild pro Tour
+	add_theme_support( 'editor-styles' );
+	add_editor_style( 'style.css' ); // Blockeditor zeigt Farben und Schriften der Seite
 	add_theme_support( 'custom-logo', array( 'height' => 60, 'flex-height' => true, 'flex-width' => true ) ); // eigenes Logo hochladbar unter Design > Website-Details
 	register_nav_menus( array(
-		'primary' => 'Hauptnavigation',
+		'kervan_header' => 'Kopfzeile (Hauptmenü)',
 	) );
 }
 add_action( 'after_setup_theme', 'kervan_setup' );
 
-// Beim ersten Aktivieren automatisch ein Menü mit Anasayfa/Turlar/İletişim anlegen,
-// damit die Navigation nicht leer bleibt, bis jemand manuell eins baut.
-function kervan_create_default_menu() {
-	if ( wp_get_nav_menu_object( 'Kervan Menü' ) ) {
-		return; // schon vorhanden, nichts doppelt anlegen
+// Beim ersten Admin-Aufruf einmalig ein Hauptmenü mit allen vier Punkten anlegen und der Kopfzeile zuweisen.
+// Bis dahin zeigt der Header seine festen Links (siehe header.php), es ändert sich also nichts Sichtbares.
+function kervan_seed_header_menu() {
+	if ( get_option( 'kervan_menu_seeded' ) || ! current_user_can( 'edit_theme_options' ) ) {
+		return;
 	}
-	$menu_id = wp_create_nav_menu( 'Kervan Menü' );
-	wp_update_nav_menu_item( $menu_id, 0, array(
-		'menu-item-title'  => 'Anasayfa',
-		'menu-item-url'    => home_url( '/' ),
-		'menu-item-status' => 'publish',
-	) );
-	wp_update_nav_menu_item( $menu_id, 0, array(
-		'menu-item-title'  => 'Turlar',
-		'menu-item-url'    => home_url( '/turlar/' ),
-		'menu-item-status' => 'publish',
-	) );
-	set_theme_mod( 'nav_menu_locations', array( 'primary' => $menu_id ) );
+	$menu    = wp_get_nav_menu_object( 'Kervan Ana Menü' );
+	$menu_id = $menu ? $menu->term_id : wp_create_nav_menu( 'Kervan Ana Menü' );
+	if ( is_wp_error( $menu_id ) ) {
+		return;
+	}
+	if ( ! wp_get_nav_menu_items( $menu_id ) ) {
+		$items = array(
+			'Anasayfa' => home_url( '/' ),
+			'Turlar'   => home_url( '/turlar/' ),
+			'Afişler'  => home_url( '/afisler/' ),
+			'İletişim' => home_url( '/iletisim/' ),
+		);
+		foreach ( $items as $title => $url ) {
+			wp_update_nav_menu_item( $menu_id, 0, array(
+				'menu-item-title'  => $title,
+				'menu-item-url'    => $url,
+				'menu-item-status' => 'publish',
+			) );
+		}
+	}
+	$locations                  = (array) get_nav_menu_locations();
+	$locations['kervan_header'] = $menu_id;
+	set_theme_mod( 'nav_menu_locations', $locations );
+	update_option( 'kervan_menu_seeded', 1 );
 }
-add_action( 'after_switch_theme', 'kervan_create_default_menu' );
+add_action( 'admin_init', 'kervan_seed_header_menu' );
 
 function kervan_enqueue_assets() {
-	wp_enqueue_style( 'google-fonts', 'https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap', array(), null );
-	wp_enqueue_style( 'kervan-style', get_stylesheet_uri(), array(), '1.0' );
+	wp_enqueue_style( 'google-fonts', kervan_google_fonts_url(), array(), null );
+	$kervan_css_file = get_stylesheet_directory() . '/style.css';
+	wp_enqueue_style( 'kervan-style', get_stylesheet_uri(), array(), file_exists( $kervan_css_file ) ? filemtime( $kervan_css_file ) : '1.0' );
 }
 add_action( 'wp_enqueue_scripts', 'kervan_enqueue_assets' );
+
+// Das WordPress-Emoji-Skript (lädt von s.w.org) wird nicht gebraucht, moderne Browser zeigen Emojis selbst.
+remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+remove_action( 'wp_print_styles', 'print_emoji_styles' );
 
 // ---------- Touren als eigener Beitragstyp ----------
 function kervan_register_tour_cpt() {
@@ -214,11 +233,22 @@ function kervan_render_tour_meta_box( $post ) {
 	echo '</script>';
 	echo '<button type="button" class="button" id="kervan_gallery_button">Fotoğraf Ekle / Değiştir</button></p>';
 
-	$flyer_id = get_post_meta( $post->ID, '_kervan_flyer', true );
-	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Tur Flyer (PDF)</label>';
+	$flyer_id   = get_post_meta( $post->ID, '_kervan_flyer', true );
+	$flyer_afis = absint( get_post_meta( $post->ID, '_kervan_flyer_afis', true ) );
+	$afis_posts = get_posts( array( 'post_type' => 'afis', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
+	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Tur Afişi — Afişler sayfasından bağla</label>';
+	echo '<select name="kervan_flyer_afis" style="width:100%;max-width:520px;"><option value="0">— Bağlı değil (aşağıdaki dosya kullanılır) —</option>';
+	foreach ( $afis_posts as $afis_post ) {
+		$afis_groups = wp_get_post_terms( $afis_post->ID, 'afis_grubu', array( 'fields' => 'names' ) );
+		$afis_label  = get_the_title( $afis_post ) . ( ( ! is_wp_error( $afis_groups ) && $afis_groups ) ? ' (' . implode( ', ', $afis_groups ) . ')' : '' );
+		echo '<option value="' . (int) $afis_post->ID . '"' . selected( $flyer_afis, $afis_post->ID, false ) . '>' . esc_html( $afis_label ) . '</option>';
+	}
+	echo '</select><br><span style="opacity:.7;font-size:.85rem;">Bir afiş seçerseniz, Afişler sayfasındaki dosya burada otomatik kullanılır. Dosyayı sadece orada değiştirmeniz yeterli.</span></p>';
+
+	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Veya bu tura özel dosya (resim veya PDF — afiş bağlı değilse kullanılır)</label>';
 	echo '<input type="hidden" id="kervan_flyer_id" name="kervan_flyer_id" value="' . esc_attr( $flyer_id ) . '">';
-	echo '<span id="kervan_flyer_preview">' . ( $flyer_id ? esc_html( basename( get_attached_file( $flyer_id ) ) ) : 'Henüz PDF seçilmedi' ) . '</span> ';
-	echo '<button type="button" class="button" id="kervan_flyer_button">PDF Seç / Değiştir</button></p>';
+	echo '<span id="kervan_flyer_preview">' . ( $flyer_id ? esc_html( basename( get_attached_file( $flyer_id ) ) ) : 'Henüz dosya seçilmedi' ) . '</span> ';
+	echo '<button type="button" class="button" id="kervan_flyer_button">Dosya Seç / Değiştir</button></p>';
 
 	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Rezervasyon Kişisi Grubu</label>';
 	$group = get_post_meta( $post->ID, 'kervan_group', true );
@@ -277,6 +307,9 @@ function kervan_save_tour_meta( $post_id ) {
 	}
 	if ( isset( $_POST['kervan_flyer_id'] ) ) {
 		update_post_meta( $post_id, '_kervan_flyer', sanitize_text_field( $_POST['kervan_flyer_id'] ) );
+	}
+	if ( isset( $_POST['kervan_flyer_afis'] ) ) {
+		update_post_meta( $post_id, '_kervan_flyer_afis', absint( $_POST['kervan_flyer_afis'] ) );
 	}
 	if ( isset( $_POST['kervan_group'] ) && is_array( $_POST['kervan_group'] ) ) {
 		$clean = array_map( 'sanitize_text_field', $_POST['kervan_group'] );
@@ -357,7 +390,7 @@ function kervan_admin_scripts( $hook ) {
 			var fbtn = document.getElementById("kervan_flyer_button");
 			if (fbtn) fbtn.addEventListener("click", function(e) {
 				e.preventDefault();
-				var frame = wp.media({ title: "PDF Seç", multiple: false, library: { type: "application/pdf" } });
+				var frame = wp.media({ title: "Dosya Seç", multiple: false, library: { type: ["image", "application/pdf"] } });
 				frame.on("select", function() {
 					var att = frame.state().get("selection").first();
 					document.getElementById("kervan_flyer_id").value = att.id;
@@ -456,15 +489,26 @@ function kervan_badge_is_past( $badge ) {
 }
 
 function kervan_is_de() {
-	return strpos( get_locale(), 'de' ) === 0;
+	// Nur wahr, wenn TranslatePress gerade eine deutsche Seite ausliefert. Die WordPress-Seitensprache zählt nicht.
+	global $TRP_LANGUAGE;
+	return ! empty( $TRP_LANGUAGE ) && strpos( (string) $TRP_LANGUAGE, 'de' ) === 0;
 }
+
+// Die Seite ist türkisch: html lang entsprechend setzen (außer TranslatePress liefert gerade Deutsch aus).
+function kervan_html_lang( $output ) {
+	if ( kervan_is_de() ) {
+		return $output;
+	}
+	return preg_replace( '/lang="[^"]*"/', 'lang="tr-TR"', $output );
+}
+add_filter( 'language_attributes', 'kervan_html_lang' );
 
 /**
  * Gibt bei Deutsch die vom Nutzer selbst gepflegte Übersetzung zurück (Kervan Ayarları),
  * sonst den türkischen Originaltext. So bleibt der Filterbereich frei editierbar.
  */
 function kervan_ft( $tr_text ) {
-	if ( ! kervan_is_de() ) return $tr_text;
+	if ( ! kervan_is_de() ) return kervan_t( $tr_text );
 	static $dict = null;
 	if ( $dict === null ) {
 		$dict = array();
@@ -491,6 +535,8 @@ function kervan_add_settings_page() {
 	);
 	add_submenu_page( 'kervan-genel', 'Anasayfa Ayarları', 'Anasayfa', 'manage_options', 'kervan-anasayfa', function() { kervan_render_settings_page( 'anasayfa', 'Anasayfa Ayarları', 'Anasayfa içerikleri (hero, video, rakamlar, Fark bölümü).' ); } );
 	add_submenu_page( 'kervan-genel', 'İletişim Ayarları', 'İletişim', 'manage_options', 'kervan-iletisim-ayarlari', function() { kervan_render_settings_page( 'iletisim', 'İletişim Ayarları', 'Sadece İletişim sayfasında görünen ek metinler.' ); } );
+	add_submenu_page( 'kervan-genel', 'Tasarım', 'Tasarım', 'manage_options', 'kervan-tasarim', function() { kervan_render_settings_page( 'tasarim', 'Tasarım', 'Renkler ve yazı tipleri. Hiçbir şeyi değiştirmezseniz site aynı kalır.' ); } );
+	add_submenu_page( 'kervan-genel', 'Metinler', 'Metinler', 'manage_options', 'kervan-metinler', 'kervan_render_texts_page' );
 
 	// Turlar ayarları, Turlar menüsünün kendi altına eklenir
 	add_submenu_page( 'edit.php?post_type=tur', 'Filtreler ve Kayıt', 'Filtreler ve Kayıt', 'manage_options', 'kervan-turlar-ayarlari', function() { kervan_render_settings_page( 'turlar', 'Filtreler ve Kayıt', 'Turlar sayfası filtre metinleri ve Kayıt Formu görselleri.' ); } );
@@ -500,8 +546,31 @@ add_action( 'admin_menu', 'kervan_add_settings_page' );
 add_action( 'admin_menu', 'kervan_add_settings_page' );
 
 function kervan_settings_fields() {
-	return array(
+	static $kervan_fields_cache = null;
+	if ( $kervan_fields_cache !== null ) {
+		return $kervan_fields_cache;
+	}
+	$kervan_fields_cache = array(
 		'kervan_hizmet_text'   => array( 'label' => 'Hizmet Devamlılık Cümlesi', 'type' => 'textarea', 'default' => 'Hizmetimiz, Kervan Kültür Turlari / Marti Turizm olarak devam etmektedir.', 'group' => 'iletisim' ),
+		'kervan_iletisim_eyebrow' => array( 'label' => 'İletişim Üst Yazı (örn. İLETİŞİM)', 'type' => 'text', 'default' => 'İLETİŞİM', 'group' => 'iletisim' ),
+		'kervan_iletisim_baslik' => array( 'label' => 'İletişim Başlık (örn. Bize Ulaşın)', 'type' => 'text', 'default' => 'Bize Ulaşın', 'group' => 'iletisim' ),
+		'kervan_iletisim_kutular' => array( 'label' => 'İletişim Kutuları — “## Başlık” yeni kutu açar. Satır: “Etiket: Değer” veya “Etiket: Değer|Link”. Hazır alanlar: {email} {phone} {instagram} {instagram_ad} {facebook} {facebook_ad} {google} {wa_kanal} {avrupatur}', 'type' => 'textarea_big', 'default' => implode( "\n", array(
+			'## Kervan Kültür Turlari',
+			'E-posta: {email}',
+			'Instagram: {instagram_ad}|{instagram}',
+			'Facebook: {facebook_ad}|{facebook}',
+			'Google: Kervan Kültür Turlari|{google}',
+			'WhatsApp-Kanal: Kervan Kültür Turlari|{wa_kanal}',
+			'Avrupa Turları: avrupatur.de|{avrupatur}',
+			'',
+			'## Marti Turizm',
+			'Sahibinin Adı: Marti Havacilik Seyahat Turizm Organizasyon ve Eğitim Hizmetleri San. Tic. Ltd. Şti.',
+			'Adresi: Hunat Mahallesi Sivas Blv. No:2 B, Melikgazi / Kayseri',
+			'Merkezi: Kayseri / Türkiye',
+			'TÜRSAB Belge No: 7483',
+			'Markamız: Kervan Kültür Turlari',
+			'Telefon: {phone}',
+		) ), 'group' => 'iletisim' ),
 		'kervan_hero_eyebrow'  => array( 'label' => 'Hero Üst Yazı', 'type' => 'text', 'default' => 'Seyahat et sıhhat bul', 'group' => 'anasayfa' ),
 		'kervan_hero_title'    => array( 'label' => 'Ana Başlık (Hero)', 'type' => 'text', 'default' => "Dünyayı güvendiğiniz bir kervanla gezin.", 'group' => 'anasayfa' ),
 		'kervan_hero_subtitle' => array( 'label' => 'Alt Yazı / Slogan (Hero, buton altında)', 'type' => 'textarea', 'default' => "Gezen güzel olur, oturan gazel olur.", 'group' => 'anasayfa' ),
@@ -532,13 +601,34 @@ function kervan_settings_fields() {
 		'kervan_facebook_name' => array( 'label' => 'Facebook Görünen Ad', 'type' => 'text', 'default' => 'Kervan Kültür Turlari', 'group' => 'genel' ),
 		'kervan_google_url'    => array( 'label' => 'Google Değerlendirme Linki', 'type' => 'text', 'default' => 'https://www.google.com/search?q=Kervan+K%C3%BClt%C3%BCr+Turlari#lrd=0x47bf2de89e120703:0xf1dea6021771e610,3', 'group' => 'genel' ),
 		'kervan_redirect_map'  => array( 'label' => 'Eski linkler → yeni sayfa (satır başına bir tane, örn. /eski-turlar/|/turlar/)', 'type' => 'textarea_big', 'default' => '', 'group' => 'genel' ),
+		'kervan_footer_links'  => array( 'label' => 'Footer Linkleri — satır başına bir tane: Metin|Link (örn. Instagram|{instagram}). Linksiz satır düz metin olur. Hazır alanlar: {email} {instagram} {facebook} {wa_kanal} {google} {avrupatur}', 'type' => 'textarea_big', 'default' => implode( "\n", array(
+			'{email}',
+			'Instagram|{instagram}',
+			'Facebook|{facebook}',
+			'WhatsApp-Kanal|{wa_kanal}',
+			'Avrupa Turları: avrupatur.de|{avrupatur}',
+		) ), 'group' => 'genel' ),
+		'kervan_footer_copy'   => array( 'label' => 'Footer Telif Metni (örn. Kervan Kültür Turlari — yıl otomatik eklenir)', 'type' => 'text', 'default' => 'Kervan Kültür Turlari', 'group' => 'genel' ),
 		'kervan_avrupatur_url' => array( 'label' => 'avrupatur.de Linki', 'type' => 'text', 'default' => 'https://avrupatur.de/', 'group' => 'genel' ),
 		'kervan_ga_id'         => array( 'label' => 'Google Analytics ID (örn. G-XXXXXXXXXX — boşsa takip kapalı)', 'type' => 'text', 'default' => 'G-MZZDWSYY59', 'group' => 'genel' ),
 
 		'kervan_filter_translations' => array( 'label' => 'Filtre Metinleri — Almanca Çeviri (örn. Ocak|Januar, satır başına bir tane)', 'type' => 'textarea_big', 'default' => "Kıta|Kontinent\nTüm Kıtalar|Alle Kontinente\nTarih Aralığı|Zeitraum\nSırala|Sortieren\nFiltrele|Filtern\nTur ara…|Tour suchen…\nFiltreleri Temizle|Filter zurücksetzen\nBu filtreye uygun tur yok.|Für diesen Filter sind keine Touren verfügbar.\nVarsayılan|Standard\nFiyat: Düşükten Yükseğe|Preis: Aufsteigend\nFiyat: Yüksekten Düşüğe|Preis: Absteigend\nTarih: Yakından Uzağa|Datum: Bald zu Später\nTarih: Uzaktan Yakına|Datum: Später zu Bald\nÖnce: Türkiye Turları|Zuerst: Türkei-Touren\nÖnce: Dünya Turları|Zuerst: Welt-Touren\nKıtaya Göre (A-Z)|Nach Kontinent (A-Z)", 'group' => 'turlar' ),
 		'kervan_kayit_bilgi_image_tr' => array( 'label' => 'Kayıt Formu Görseli — Türkiye Turları (“Kayıt Formu” bağlantısında açılır)', 'type' => 'image', 'default' => '', 'group' => 'turlar' ),
 		'kervan_kayit_bilgi_image_dunya' => array( 'label' => 'Kayıt Formu Görseli — Dünya Turları (“Kayıt Formu” bağlantısında açılır)', 'type' => 'image', 'default' => '', 'group' => 'turlar' ),
+		'kervan_font_head'    => array( 'label' => 'Başlık Yazı Tipi', 'type' => 'select', 'options' => kervan_font_options( 'head' ), 'default' => 'fraunces', 'group' => 'tasarim' ),
+		'kervan_font_body'    => array( 'label' => 'Metin Yazı Tipi', 'type' => 'select', 'options' => kervan_font_options( 'body' ), 'default' => 'worksans', 'group' => 'tasarim' ),
+		'kervan_c_ink'        => array( 'label' => 'Ana koyu renk — menü, footer, butonlar', 'type' => 'color', 'default' => '#1B2438', 'group' => 'tasarim' ),
+		'kervan_c_plum'       => array( 'label' => 'Koyu geçiş rengi — footer ve buton geçişlerinin ortası', 'type' => 'color', 'default' => '#2A2038', 'group' => 'tasarim' ),
+		'kervan_c_clay'       => array( 'label' => 'Vurgu rengi — butonlar, linkler', 'type' => 'color', 'default' => '#BD5B3B', 'group' => 'tasarim' ),
+		'kervan_c_clay_dark'  => array( 'label' => 'Vurgu rengi (koyu) — üst yazılar, vurgular', 'type' => 'color', 'default' => '#9C462C', 'group' => 'tasarim' ),
+		'kervan_c_gold'       => array( 'label' => 'Altın tonu — çerçeve ve detaylar', 'type' => 'color', 'default' => '#C99A4A', 'group' => 'tasarim' ),
+		'kervan_c_cream'      => array( 'label' => 'Sayfa arka planı', 'type' => 'color', 'default' => '#FBF6EC', 'group' => 'tasarim' ),
+		'kervan_c_sand'       => array( 'label' => 'Kutu ve panel arka planı', 'type' => 'color', 'default' => '#F3E8D6', 'group' => 'tasarim' ),
+		'kervan_c_charcoal'   => array( 'label' => 'Yazı rengi', 'type' => 'color', 'default' => '#2B2016', 'group' => 'tasarim' ),
+		'kervan_c_red'        => array( 'label' => 'Kırmızı — DOLU ve rozetler', 'type' => 'color', 'default' => '#E00000', 'group' => 'tasarim' ),
+		'kervan_c_green'      => array( 'label' => 'Yeşil — Kayıt Formu butonu', 'type' => 'color', 'default' => '#4CAF50', 'group' => 'tasarim' ),
 	);
+	return $kervan_fields_cache;
 }
 
 function kervan_get_option( $key ) {
@@ -578,6 +668,11 @@ function kervan_render_settings_page( $group, $title, $desc ) {
 				echo '<option value="' . esc_attr( $opt_value ) . '" ' . selected( $value, $opt_value, false ) . '>' . esc_html( $opt_label ) . '</option>';
 			}
 			echo '</select>';
+		} elseif ( $field['type'] === 'color' ) {
+			$cv = preg_match( '/^#[0-9a-fA-F]{6}$/', $value ) ? $value : $field['default'];
+			echo '<input type="color" name="' . esc_attr( $key ) . '" value="' . esc_attr( $cv ) . '" style="width:70px;height:40px;padding:2px;cursor:pointer;"> ';
+			echo '<code>' . esc_html( $cv ) . '</code> &nbsp; ';
+			echo '<a href="#" class="kervan-color-reset" data-default="' . esc_attr( $field['default'] ) . '">varsayılana dön (' . esc_html( $field['default'] ) . ')</a>';
 		} elseif ( $field['type'] === 'page_select' ) {
 			echo '<select name="' . esc_attr( $key ) . '" style="width:100%;max-width:700px;"><option value="">— Yok —</option>';
 			foreach ( get_pages() as $page ) {
@@ -607,6 +702,13 @@ function kervan_render_settings_page( $group, $title, $desc ) {
 			jQuery("#"+target+"_preview").html(jQuery("<img>").attr("src", url).css({borderRadius:"8px", maxWidth:"260px"}));
 		});
 		frame.open();
+	});
+	jQuery(document).on("click", ".kervan-color-reset", function(e){
+		e.preventDefault();
+		jQuery(this).siblings("input[type=color]").val(jQuery(this).data("default")).trigger("input");
+	});
+	jQuery(document).on("input", "input[type=color]", function(){
+		jQuery(this).siblings("code").text(this.value);
 	});
 	</script>';
 	echo '<p><button class="button button-primary">Kaydet</button></p></form></div>';
@@ -657,12 +759,13 @@ function kervan_render_analytics() {
 	if ( ! $ga_id ) return;
 	?>
 	<div id="kervanCookieBanner" style="display:none; position:fixed; bottom:0; left:0; right:0; z-index:999; background:var(--ink,#1B2438); color:#fff; padding:18px 20px; gap:16px; align-items:center; flex-wrap:wrap; justify-content:center;">
-		<span style="font-size:.86rem; max-width:520px;">Deneyiminizi iyileştirmek için çerezler kullanıyoruz.</span>
-		<button onclick="kervanCookieChoice(true)" style="background:var(--clay,#BD5B3B); color:#fff; border:none; padding:9px 18px; border-radius:100px; font-weight:600; cursor:pointer;">Kabul Et</button>
-		<button onclick="kervanCookieChoice(false)" style="background:transparent; color:#fff; border:1px solid rgba(255,255,255,.4); padding:9px 18px; border-radius:100px; cursor:pointer;">Reddet</button>
+		<span style="font-size:.86rem; max-width:520px;"><?php echo esc_html( kervan_t( 'Deneyiminizi iyileştirmek için çerezler kullanıyoruz.' ) ); ?></span>
+		<button onclick="kervanCookieChoice(true)" style="background:var(--clay,#BD5B3B); color:#fff; border:none; padding:9px 18px; border-radius:100px; font-weight:600; cursor:pointer;"><?php echo esc_html( kervan_t( 'Kabul Et' ) ); ?></button>
+		<button onclick="kervanCookieChoice(false)" style="background:transparent; color:#fff; border:1px solid rgba(255,255,255,.4); padding:9px 18px; border-radius:100px; cursor:pointer;"><?php echo esc_html( kervan_t( 'Reddet' ) ); ?></button>
 	</div>
 	<script>
 	function kervanLoadGA(){
+		if (<?php echo is_user_logged_in() ? 'true' : 'false'; ?>) { return; } // eingeloggte Nutzer (Admin) nicht mitzählen
 		var s = document.createElement('script');
 		s.src = 'https://www.googletagmanager.com/gtag/js?id=<?php echo esc_js( $ga_id ); ?>';
 		s.async = true;
@@ -1099,6 +1202,11 @@ function kervan_handle_old_url_redirects() {
 	if ( ! is_404() ) {
 		return;
 	}
+	$uri_path = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '', PHP_URL_PATH );
+	if ( preg_match( '#^/de(/.*)?$#i', $uri_path, $de_match ) ) {
+		wp_redirect( home_url( ( isset( $de_match[1] ) && $de_match[1] !== '' ) ? $de_match[1] : '/' ), 301 );
+		exit;
+	}
 	$map = kervan_get_option( 'kervan_redirect_map' );
 	if ( ! $map ) {
 		return;
@@ -1129,3 +1237,528 @@ function kervan_handle_old_url_redirects() {
 	}
 }
 add_action( 'template_redirect', 'kervan_handle_old_url_redirects' );
+
+// ---------- Admin-gesteuerte Textblöcke (Footer, İletişim-Kästen) ----------
+function kervan_expand_placeholders( $text ) {
+	$map = array(
+		'{email}'        => kervan_get_option( 'kervan_email' ),
+		'{phone}'        => kervan_get_option( 'kervan_phone' ),
+		'{instagram}'    => kervan_get_option( 'kervan_instagram' ),
+		'{instagram_ad}' => kervan_get_option( 'kervan_instagram_handle' ),
+		'{facebook}'     => kervan_get_option( 'kervan_facebook' ),
+		'{facebook_ad}'  => kervan_get_option( 'kervan_facebook_name' ),
+		'{google}'       => kervan_get_option( 'kervan_google_url' ),
+		'{wa_kanal}'     => kervan_get_option( 'kervan_wa_channel' ),
+		'{avrupatur}'    => kervan_get_option( 'kervan_avrupatur_url' ),
+	);
+	return strtr( (string) $text, $map );
+}
+
+function kervan_link_html( $url, $text ) {
+	$url         = trim( $url );
+	$is_external = preg_match( '#^https?://#i', $url ) && strpos( $url, home_url() ) !== 0;
+	return '<a href="' . esc_url( $url ) . '"' . ( $is_external ? ' target="_blank" rel="noopener"' : '' ) . '>' . esc_html( $text ) . '</a>';
+}
+
+// Footer-Zeile: jede Zeile "Metin|Link" wird zum Link, Zeilen ohne "|" zu einfachem Text.
+function kervan_render_footer_links() {
+	$out = '';
+	foreach ( preg_split( '/\r\n|\r|\n/', kervan_expand_placeholders( kervan_get_option( 'kervan_footer_links' ) ) ) as $line ) {
+		$line = trim( $line );
+		if ( $line === '' ) {
+			continue;
+		}
+		$parts = explode( '|', $line, 2 );
+		if ( isset( $parts[1] ) && trim( $parts[1] ) !== '' ) {
+			$out .= kervan_link_html( $parts[1], trim( $parts[0] ) );
+		} else {
+			$out .= '<span>' . esc_html( $line ) . '</span>';
+		}
+	}
+	return $out;
+}
+
+// İletişim-Kästen: "## Titel" öffnet einen Kasten, Zeilen "Etiket: Wert" oder "Etiket: Wert|Link".
+function kervan_render_info_boxes( $text ) {
+	$boxes = array();
+	$cur   = null;
+	foreach ( preg_split( '/\r\n|\r|\n/', kervan_expand_placeholders( $text ) ) as $line ) {
+		$line = trim( $line );
+		if ( $line === '' ) {
+			continue;
+		}
+		if ( strpos( $line, '## ' ) === 0 ) {
+			$boxes[] = array( 'title' => trim( substr( $line, 3 ) ), 'lines' => array() );
+			$cur     = count( $boxes ) - 1;
+			continue;
+		}
+		if ( $cur === null ) {
+			$boxes[] = array( 'title' => '', 'lines' => array() );
+			$cur     = 0;
+		}
+		$boxes[ $cur ]['lines'][] = $line;
+	}
+	$html = '';
+	foreach ( $boxes as $box ) {
+		$rows = array();
+		foreach ( $box['lines'] as $l ) {
+			$parts = explode( '|', $l, 2 );
+			$left  = trim( $parts[0] );
+			if ( isset( $parts[1] ) && trim( $parts[1] ) !== '' ) {
+				$pos = strpos( $left, ': ' );
+				if ( $pos !== false ) {
+					$rows[] = esc_html( substr( $left, 0, $pos ) ) . ': ' . kervan_link_html( $parts[1], substr( $left, $pos + 2 ) );
+				} else {
+					$rows[] = kervan_link_html( $parts[1], $left );
+				}
+			} else {
+				$rows[] = esc_html( $left );
+			}
+		}
+		$html .= '<div class="kervan-info-box" style="background:var(--sand); border-radius:16px; padding:34px; margin-bottom:24px; text-align:left;">';
+		if ( $box['title'] !== '' ) {
+			$html .= '<h3>' . esc_html( $box['title'] ) . '</h3>';
+		}
+		$html .= '<p style="line-height:2;">' . implode( '<br>', $rows ) . '</p></div>';
+	}
+	return $html;
+}
+
+// ---------- Design: Farben und Schriften aus dem Admin ----------
+function kervan_font_choices() {
+	return array(
+		'head' => array(
+			'fraunces'   => array( 'Fraunces', 'Fraunces:wght@600;700', 'serif' ),
+			'playfair'   => array( 'Playfair Display', 'Playfair+Display:wght@600;700', 'serif' ),
+			'lora'       => array( 'Lora', 'Lora:wght@600;700', 'serif' ),
+			'merriweather' => array( 'Merriweather', 'Merriweather:wght@400;700', 'serif' ),
+			'poppins'    => array( 'Poppins', 'Poppins:wght@600;700', 'sans-serif' ),
+			'montserrat' => array( 'Montserrat', 'Montserrat:wght@600;700', 'sans-serif' ),
+		),
+		'body' => array(
+			'worksans'   => array( 'Work Sans', 'Work+Sans:wght@400;500;600;700', 'sans-serif' ),
+			'inter'      => array( 'Inter', 'Inter:wght@400;500;600;700', 'sans-serif' ),
+			'opensans'   => array( 'Open Sans', 'Open+Sans:wght@400;500;600;700', 'sans-serif' ),
+			'nunito'     => array( 'Nunito', 'Nunito:wght@400;500;600;700', 'sans-serif' ),
+			'lato'       => array( 'Lato', 'Lato:wght@400;700', 'sans-serif' ),
+			'roboto'     => array( 'Roboto', 'Roboto:wght@400;500;700', 'sans-serif' ),
+		),
+	);
+}
+
+function kervan_font_options( $which ) {
+	$choices = kervan_font_choices();
+	$out     = array();
+	foreach ( $choices[ $which ] as $id => $def ) {
+		$out[ $id ] = $def[0];
+	}
+	return $out;
+}
+
+function kervan_font_selection() {
+	$choices = kervan_font_choices();
+	$head    = (string) kervan_get_option( 'kervan_font_head' );
+	$body    = (string) kervan_get_option( 'kervan_font_body' );
+	if ( ! isset( $choices['head'][ $head ] ) ) {
+		$head = 'fraunces';
+	}
+	if ( ! isset( $choices['body'][ $body ] ) ) {
+		$body = 'worksans';
+	}
+	return array( $choices['head'][ $head ], $choices['body'][ $body ] );
+}
+
+function kervan_google_fonts_url() {
+	$sel      = kervan_font_selection();
+	$families = array_unique( array( $sel[0][1], $sel[1][1], 'IBM+Plex+Mono:wght@500;600' ) );
+	return 'https://fonts.googleapis.com/css2?family=' . implode( '&family=', $families ) . '&display=swap';
+}
+
+function kervan_hex_to_rgb( $hex ) {
+	$hex = ltrim( $hex, '#' );
+	if ( strlen( $hex ) === 3 ) {
+		$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+	}
+	return array( hexdec( substr( $hex, 0, 2 ) ), hexdec( substr( $hex, 2, 2 ) ), hexdec( substr( $hex, 4, 2 ) ) );
+}
+
+function kervan_design_vars() {
+	$fields = kervan_settings_fields();
+	$map    = array(
+		'ink'       => 'kervan_c_ink',
+		'plum'      => 'kervan_c_plum',
+		'clay'      => 'kervan_c_clay',
+		'clay-dark' => 'kervan_c_clay_dark',
+		'gold'      => 'kervan_c_gold',
+		'cream'     => 'kervan_c_cream',
+		'sand'      => 'kervan_c_sand',
+		'charcoal'  => 'kervan_c_charcoal',
+		'red'       => 'kervan_c_red',
+		'green'     => 'kervan_c_green',
+	);
+	$vars = array();
+	$hex  = array();
+	foreach ( $map as $var => $key ) {
+		$val = sanitize_hex_color( (string) kervan_get_option( $key ) );
+		if ( ! $val ) {
+			$val = $fields[ $key ]['default'];
+		}
+		$hex[ $var ]         = $val;
+		$vars[ '--' . $var ] = $val;
+	}
+	foreach ( array( 'ink', 'charcoal', 'clay' ) as $v ) {
+		$rgb                       = kervan_hex_to_rgb( $hex[ $v ] );
+		$vars[ '--' . $v . '-rgb' ] = $rgb[0] . ',' . $rgb[1] . ',' . $rgb[2];
+	}
+	$line          = kervan_hex_to_rgb( $hex['charcoal'] );
+	$vars['--line'] = 'rgba(' . $line[0] . ',' . $line[1] . ',' . $line[2] . ',.14)';
+	$clay_changed        = strtolower( $hex['clay'] ) !== strtolower( $fields['kervan_c_clay']['default'] );
+	$vars['--clay-soft'] = $clay_changed ? $hex['clay'] : '#C2664A';
+	$sel                 = kervan_font_selection();
+	$vars['--font-head'] = "'" . $sel[0][0] . "', " . $sel[0][2];
+	$vars['--font-body'] = "'" . $sel[1][0] . "', " . $sel[1][2];
+	return $vars;
+}
+
+function kervan_print_design_css() {
+	$css = '';
+	foreach ( kervan_design_vars() as $name => $value ) {
+		$css .= $name . ':' . $value . ';';
+	}
+	echo '<style id="kervan-design">:root{' . $css . '}</style>' . "\n";
+}
+add_action( 'wp_head', 'kervan_print_design_css', 99 );
+
+// ---------- Metinler: feste Texte im Admin überschreibbar ----------
+function kervan_get_text_overrides() {
+	static $map = null;
+	if ( $map === null ) {
+		$raw = (string) get_option( 'kervan_text_overrides', '' );
+		$dec = ( $raw !== '' ) ? json_decode( $raw, true ) : array();
+		$map = is_array( $dec ) ? $dec : array();
+	}
+	return $map;
+}
+
+// Gibt den im Admin gesetzten Ersatztext zurück, sonst den Originaltext.
+function kervan_t( $text ) {
+	$map = kervan_get_text_overrides();
+	return ( isset( $map[ $text ] ) && $map[ $text ] !== '' ) ? $map[ $text ] : $text;
+}
+
+function kervan_text_files() {
+	return array(
+		'front-page.php'    => 'Anasayfa',
+		'archive-tur.php'   => 'Turlar sayfası ve filtreler',
+		'single-tur.php'    => 'Tur sayfası',
+		'page-iletisim.php' => 'İletişim sayfası',
+		'page-afisler.php'  => 'Afişler sayfası',
+		'404.php'           => 'Hata sayfası (404)',
+		'functions.php'     => 'Çerez bildirimi',
+	);
+}
+
+// Liest alle überschreibbaren Texte aus den Templates (nur im Admin nötig).
+function kervan_collect_texts() {
+	$out = array();
+	$re  = "/kervan_(?:t|ft)\\(\\s*'((?:[^'\\\\]|\\\\.)*)'\\s*\\)/u";
+	foreach ( kervan_text_files() as $file => $label ) {
+		$path = get_template_directory() . '/' . $file;
+		if ( ! is_readable( $path ) ) {
+			continue;
+		}
+		$src = (string) file_get_contents( $path );
+		if ( preg_match_all( $re, $src, $m ) ) {
+			$list = array();
+			foreach ( $m[1] as $t ) {
+				$t          = str_replace( array( "\\'", "\\\\" ), array( "'", "\\" ), $t );
+				$list[ $t ] = $t;
+			}
+			if ( $list ) {
+				$out[ $label ] = array_values( $list );
+			}
+		}
+	}
+	return $out;
+}
+
+function kervan_render_texts_page() {
+	$groups = kervan_collect_texts();
+	$saved  = kervan_get_text_overrides();
+	if ( isset( $_POST['kervan_texts_nonce'] ) && wp_verify_nonce( $_POST['kervan_texts_nonce'], 'kervan_save_texts' ) && current_user_can( 'manage_options' ) ) {
+		$posted = ( isset( $_POST['kervan_txt'] ) && is_array( $_POST['kervan_txt'] ) ) ? wp_unslash( $_POST['kervan_txt'] ) : array();
+		$new    = array();
+		foreach ( $groups as $list ) {
+			foreach ( $list as $orig ) {
+				$id = md5( $orig );
+				if ( isset( $posted[ $id ] ) ) {
+					$val = trim( str_replace( '"', '”', sanitize_text_field( $posted[ $id ] ) ) );
+					if ( $val !== '' && $val !== $orig ) {
+						$new[ $orig ] = $val;
+					}
+				}
+			}
+		}
+		update_option( 'kervan_text_overrides', wp_json_encode( $new, JSON_UNESCAPED_UNICODE ) );
+		$saved = $new;
+		echo '<div class="updated"><p>Kaydedildi.</p></div>';
+	}
+	echo '<div class="wrap"><h1>Metinler</h1>';
+	echo '<p>Sitedeki sabit yazıları değiştirin. Boş bırakılan satırlar olduğu gibi kalır. Örnek: “Tarihler” yerine “Tur Tarihleri”.</p>';
+	echo '<p><input type="search" id="kervanTxtFilter" placeholder="Ara…" style="width:100%;max-width:420px;"></p>';
+	echo '<form method="post">';
+	wp_nonce_field( 'kervan_save_texts', 'kervan_texts_nonce' );
+	foreach ( $groups as $label => $list ) {
+		echo '<h2>' . esc_html( $label ) . '</h2>';
+		echo '<table class="widefat striped kervan-txt-table" style="max-width:900px;"><thead><tr><th style="width:42%;">Şu anki metin</th><th>Yeni metin</th></tr></thead><tbody>';
+		foreach ( $list as $orig ) {
+			$val = isset( $saved[ $orig ] ) ? $saved[ $orig ] : '';
+			echo '<tr><td><code>' . esc_html( $orig ) . '</code></td><td><input type="text" name="kervan_txt[' . esc_attr( md5( $orig ) ) . ']" value="' . esc_attr( $val ) . '" placeholder="' . esc_attr( $orig ) . '" style="width:100%;"></td></tr>';
+		}
+		echo '</tbody></table>';
+	}
+	echo '<p><button class="button button-primary">Kaydet</button></p></form></div>';
+	echo '<script>document.getElementById("kervanTxtFilter").addEventListener("input", function(){ var q = this.value.toLowerCase(); document.querySelectorAll(".kervan-txt-table tbody tr").forEach(function(tr){ var hit = tr.textContent.toLowerCase().indexOf(q) !== -1 || tr.querySelector("input").value.toLowerCase().indexOf(q) !== -1; tr.style.display = hit ? "" : "none"; }); });</script>';
+}
+
+// ---------- Einmalig Standardwerte speichern: spart pro Seitenaufruf Datenbankabfragen für nie gespeicherte Optionen ----------
+function kervan_seed_option_defaults() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+	$fields = kervan_settings_fields();
+	$sig    = md5( implode( ',', array_keys( $fields ) ) . '|text-overrides|v1' );
+	if ( get_option( 'kervan_seed_sig' ) === $sig ) {
+		return;
+	}
+	foreach ( $fields as $key => $field ) {
+		add_option( $key, isset( $field['default'] ) ? $field['default'] : '' );
+	}
+	add_option( 'kervan_text_overrides', '' );
+	update_option( 'kervan_seed_sig', $sig );
+}
+add_action( 'admin_init', 'kervan_seed_option_defaults' );
+
+// ---------- Baukasten: fertige Block-Muster für den WordPress-Editor ----------
+function kervan_pattern_definitions() {
+	return array(
+		'hero' => array(
+			'title'       => 'Kervan: Büyük Başlık (Hero)',
+			'description' => 'Başlık, kısa metin ve butonlu koyu banner.',
+			'content'     => implode( "\n", array(
+				'<!-- wp:group {"className":"kv-hero"} -->',
+				'<div class="wp-block-group kv-hero"><!-- wp:heading {"level":1} -->',
+				'<h1 class="wp-block-heading">Başlık buraya yazın</h1>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Kısa açıklama metni buraya yazılır.</p>',
+				'<!-- /wp:paragraph -->',
+				'',
+				'<!-- wp:buttons {"className":"kv-center"} -->',
+				'<div class="wp-block-buttons kv-center"><!-- wp:button -->',
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{turlar}}">Turları Gör</a></div>',
+				'<!-- /wp:button --></div>',
+				'<!-- /wp:buttons --></div>',
+				'<!-- /wp:group -->'
+			) ),
+		),
+		'text-image' => array(
+			'title'       => 'Kervan: Metin + Görsel',
+			'description' => 'İki sütun: solda metin, sağda görsel.',
+			'content'     => implode( "\n", array(
+				'<!-- wp:columns {"className":"kv-text-image"} -->',
+				'<div class="wp-block-columns kv-text-image"><!-- wp:column -->',
+				'<div class="wp-block-column"><!-- wp:heading -->',
+				'<h2 class="wp-block-heading">Başlık</h2>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Metin buraya yazılır. İstediğiniz kadar uzatabilirsiniz.</p>',
+				'<!-- /wp:paragraph --></div>',
+				'<!-- /wp:column -->',
+				'',
+				'<!-- wp:column -->',
+				'<div class="wp-block-column"><!-- wp:image -->',
+				'<figure class="wp-block-image"><img alt=""/></figure>',
+				'<!-- /wp:image --></div>',
+				'<!-- /wp:column --></div>',
+				'<!-- /wp:columns -->'
+			) ),
+		),
+		'three-boxes' => array(
+			'title'       => 'Kervan: 3 Kutu',
+			'description' => 'Başlık ve metinli, yan yana üç kutu.',
+			'content'     => implode( "\n", array(
+				'<!-- wp:columns {"className":"kv-three"} -->',
+				'<div class="wp-block-columns kv-three"><!-- wp:column -->',
+				'<div class="wp-block-column"><!-- wp:group {"className":"kv-card"} -->',
+				'<div class="wp-block-group kv-card"><!-- wp:heading {"level":3} -->',
+				'<h3 class="wp-block-heading">Başlık 1</h3>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Kısa metin buraya yazılır.</p>',
+				'<!-- /wp:paragraph --></div>',
+				'<!-- /wp:group --></div>',
+				'<!-- /wp:column -->',
+				'',
+				'<!-- wp:column -->',
+				'<div class="wp-block-column"><!-- wp:group {"className":"kv-card"} -->',
+				'<div class="wp-block-group kv-card"><!-- wp:heading {"level":3} -->',
+				'<h3 class="wp-block-heading">Başlık 2</h3>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Kısa metin buraya yazılır.</p>',
+				'<!-- /wp:paragraph --></div>',
+				'<!-- /wp:group --></div>',
+				'<!-- /wp:column -->',
+				'',
+				'<!-- wp:column -->',
+				'<div class="wp-block-column"><!-- wp:group {"className":"kv-card"} -->',
+				'<div class="wp-block-group kv-card"><!-- wp:heading {"level":3} -->',
+				'<h3 class="wp-block-heading">Başlık 3</h3>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Kısa metin buraya yazılır.</p>',
+				'<!-- /wp:paragraph --></div>',
+				'<!-- /wp:group --></div>',
+				'<!-- /wp:column --></div>',
+				'<!-- /wp:columns -->'
+			) ),
+		),
+		'banner' => array(
+			'title'       => 'Kervan: Banner + WhatsApp Butonu',
+			'description' => 'Koyu banner: başlık, metin ve WhatsApp butonu.',
+			'content'     => implode( "\n", array(
+				'<!-- wp:group {"className":"kv-banner"} -->',
+				'<div class="wp-block-group kv-banner"><!-- wp:heading -->',
+				'<h2 class="wp-block-heading">Bizimle iletişime geçin</h2>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Sorularınız için bize WhatsApp üzerinden yazabilirsiniz.</p>',
+				'<!-- /wp:paragraph -->',
+				'',
+				'<!-- wp:buttons {"className":"kv-center"} -->',
+				'<div class="wp-block-buttons kv-center"><!-- wp:button -->',
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{wa}}">WhatsApp ile Yazın</a></div>',
+				'<!-- /wp:button --></div>',
+				'<!-- /wp:buttons --></div>',
+				'<!-- /wp:group -->'
+			) ),
+		),
+		'info' => array(
+			'title'       => 'Kervan: Bilgi Kutusu',
+			'description' => 'Başlık ve metinli açık renkli bilgi kutusu.',
+			'content'     => implode( "\n", array(
+				'<!-- wp:group {"className":"kv-info"} -->',
+				'<div class="wp-block-group kv-info"><!-- wp:heading {"level":3} -->',
+				'<h3 class="wp-block-heading">Önemli bilgi</h3>',
+				'<!-- /wp:heading -->',
+				'',
+				'<!-- wp:paragraph -->',
+				'<p>Bilgi metni buraya yazılır.</p>',
+				'<!-- /wp:paragraph --></div>',
+				'<!-- /wp:group -->'
+			) ),
+		),
+		'buttons' => array(
+			'title'       => 'Kervan: Buton Satırı',
+			'description' => 'Yan yana iki buton.',
+			'content'     => implode( "\n", array(
+				'<!-- wp:buttons {"className":"kv-center"} -->',
+				'<div class="wp-block-buttons kv-center"><!-- wp:button -->',
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{turlar}}">Turlar</a></div>',
+				'<!-- /wp:button -->',
+				'',
+				'<!-- wp:button -->',
+				'<div class="wp-block-button"><a class="wp-block-button__link wp-element-button" href="{{iletisim}}">İletişim</a></div>',
+				'<!-- /wp:button --></div>',
+				'<!-- /wp:buttons -->'
+			) ),
+		),
+	);
+}
+
+function kervan_register_patterns() {
+	if ( ! function_exists( 'register_block_pattern' ) ) {
+		return;
+	}
+	register_block_pattern_category( 'kervan', array( 'label' => 'Kervan' ) );
+	$wa_digits = preg_replace( '/\D/', '', (string) kervan_get_option( 'kervan_whatsapp' ) );
+	$from      = array( '{{turlar}}', '{{iletisim}}', '{{wa}}' );
+	$to        = array( esc_url( home_url( '/turlar/' ) ), esc_url( home_url( '/iletisim/' ) ), esc_url( 'https://wa.me/' . $wa_digits ) );
+	foreach ( kervan_pattern_definitions() as $slug => $def ) {
+		register_block_pattern( 'kervan/' . $slug, array(
+			'title'       => $def['title'],
+			'description' => $def['description'],
+			'categories'  => array( 'kervan' ),
+			'content'     => str_replace( $from, $to, $def['content'] ),
+		) );
+	}
+}
+add_action( 'init', 'kervan_register_patterns' );
+
+// ---------- Seiten-Cache leeren, wenn sich Inhalte oder Einstellungen ändern ----------
+// Wirkt nur, wenn das Plugin WP Super Cache aktiv ist. Ohne Cache-Plugin passiert nichts.
+function kervan_flush_page_cache() {
+	static $done = false;
+	if ( $done ) {
+		return;
+	}
+	$done = true;
+	if ( function_exists( 'wp_cache_clear_cache' ) ) {
+		wp_cache_clear_cache();
+	}
+}
+
+function kervan_schedule_cache_flush() {
+	add_action( 'shutdown', 'kervan_flush_page_cache' );
+}
+
+function kervan_on_option_changed( $option ) {
+	if ( strpos( (string) $option, 'kervan_' ) === 0 && $option !== 'kervan_seed_sig' && $option !== 'kervan_menu_seeded' ) {
+		kervan_schedule_cache_flush();
+	}
+}
+add_action( 'updated_option', 'kervan_on_option_changed' );
+add_action( 'added_option', 'kervan_on_option_changed' );
+add_action( 'save_post_tur', 'kervan_schedule_cache_flush' );
+add_action( 'wp_update_nav_menu', 'kervan_schedule_cache_flush' );
+add_action( 'customize_save_after', 'kervan_schedule_cache_flush' );
+add_action( 'edited_kita', 'kervan_schedule_cache_flush' );
+add_action( 'save_post_afis', 'kervan_schedule_cache_flush' );
+
+// ---------- Afişler haben keine eigene Seite: Adressen führen zur Afişler-Seite, die passende Afiş klappt dort auf ----------
+function kervan_redirect_afis_urls() {
+	if ( is_preview() ) {
+		return;
+	}
+	if ( is_singular( 'afis' ) ) {
+		$afis = get_queried_object();
+		$slug = ( $afis && ! empty( $afis->post_name ) ) ? $afis->post_name : '';
+		wp_safe_redirect( home_url( '/afisler/' ) . ( $slug !== '' ? '#afis-' . $slug : '' ), 301 );
+		exit;
+	}
+	if ( is_tax( 'afis_grubu' ) || is_post_type_archive( 'afis' ) ) {
+		wp_safe_redirect( home_url( '/afisler/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'kervan_redirect_afis_urls' );
+
+// Die Weiterleitungs-Adressen gehören nicht in die Sitemap.
+function kervan_sitemap_without_afis( $types ) {
+	unset( $types['afis'] );
+	return $types;
+}
+add_filter( 'wp_sitemaps_post_types', 'kervan_sitemap_without_afis' );
+
+function kervan_sitemap_without_afis_groups( $taxonomies ) {
+	unset( $taxonomies['afis_grubu'] );
+	return $taxonomies;
+}
+add_filter( 'wp_sitemaps_taxonomies', 'kervan_sitemap_without_afis_groups' );

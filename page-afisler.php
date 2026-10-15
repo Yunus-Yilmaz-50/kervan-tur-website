@@ -18,7 +18,7 @@ function kervan_render_afis_group_by_term( $term ) {
 
 	$label = $term->name;
 
-	echo '<h2 style="font-family:\'Fraunces\',serif; margin:40px 0 16px;">' . esc_html( $label ) . '</h2>';
+	echo '<h2 style="font-family:var(--font-head); margin:40px 0 16px;">' . esc_html( $label ) . '</h2>';
 	foreach ( $afisler as $a ) {
 		$file_id = get_post_meta( $a->ID, '_kervan_afis_file', true );
 		if ( ! $file_id ) continue;
@@ -41,7 +41,7 @@ function kervan_render_afis_group_by_term( $term ) {
 <style>
 .afisler-wrap{ max-width:900px; margin:0 auto; padding:50px 20px 90px; }
 .afis-item{ border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:16px; background:var(--cream); }
-.afis-item summary{ cursor:pointer; font-weight:600; font-family:'Fraunces',serif; font-size:1.1rem; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+.afis-item summary{ cursor:pointer; font-weight:600; font-family:var(--font-head); font-size:1.1rem; list-style:none; display:flex; justify-content:space-between; align-items:center; }
 .afis-item summary::-webkit-details-marker{ display:none; }
 .afis-item summary::after{ content:'+'; font-size:1.3rem; color:var(--clay); margin-left:14px; }
 .afis-item[open] summary::after{ content:'−'; }
@@ -50,8 +50,8 @@ function kervan_render_afis_group_by_term( $term ) {
 </style>
 
 <div class="afisler-wrap">
-	<div class="eyebrow" style="font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.12em; font-size:.85rem; font-weight:700; color:var(--clay-dark);"><?php echo 'AFİŞLER'; ?></div>
-	<h1 style="font-family:'Fraunces',serif;"><?php echo 'Tüm Afişlerimiz'; ?></h1>
+	<div class="eyebrow" style="font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.12em; font-size:.85rem; font-weight:700; color:var(--clay-dark);"><?php echo esc_html( kervan_t( 'AFİŞLER' ) ); ?></div>
+	<h1 style="font-family:var(--font-head);"><?php echo esc_html( kervan_t( 'Tüm Afişlerimiz' ) ); ?></h1>
 
 	<?php
 	$terms = get_terms( array( 'taxonomy' => 'afis_grubu', 'hide_empty' => false, 'meta_key' => 'grubu_sira', 'orderby' => 'meta_value_num', 'order' => 'ASC' ) );

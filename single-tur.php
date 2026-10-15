@@ -23,29 +23,29 @@
 .title-row{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:nowrap; }
 .title-row > div:first-child{ flex:1; min-width:0; }
 .title-row .price-block{ flex-shrink:0; }
-.title-row h1{ font-family:'Fraunces',serif; margin:0; }
+.title-row h1{ font-family:var(--font-head); margin:0; }
 .pins-days{ opacity:.75; font-size:.88rem; margin-top:6px; }
 .place-block{ margin-top:14px; }
-.place-block h4{ font-family:'Fraunces',serif; font-size:.98rem; font-weight:600; margin:0 0 6px; }
+.place-block h4{ font-family:var(--font-head); font-size:.98rem; font-weight:600; margin:0 0 6px; }
 .place-list{ list-style:none; margin:0 0 4px; padding:0 0 0 14px; font-size:.9rem; line-height:1.85; }
 .place-list li{ position:relative; padding-left:24px; }
 .place-list li::before{ content:'–'; position:absolute; left:0; color:var(--gold); font-weight:700; }
 .place-list li.place-note{ font-size:.82rem; font-style:italic; opacity:.7; line-height:1.6; margin-top:2px; }
 .place-list li.place-note::before{ content:none; }
 .price-block{ text-align:right; }
-.days-label{ font-family:'Fraunces',serif; font-size:1.15rem; font-weight:600; color:var(--charcoal); margin-bottom:2px; }
-.price-block .price{ font-family:'Fraunces',serif; font-size:1.7rem; font-weight:700; display:block; }
+.days-label{ font-family:var(--font-head); font-size:1.15rem; font-weight:600; color:var(--charcoal); margin-bottom:2px; }
+.price-block .price{ font-family:var(--font-head); font-size:1.7rem; font-weight:700; display:block; }
 .price-line{ display:flex; align-items:baseline; justify-content:flex-end; gap:6px; }
 .price-line small{ font-size:.78rem; font-weight:400; opacity:.65; }
 .date-list{ margin:0 0 1em; line-height:1.7; }
 .date-op{ font-size:.82rem; opacity:.65; white-space:nowrap; }
-.date-full{ color:#E00000; font-weight:700; text-transform:uppercase; }
-.price-block .badge{ margin-top:4px; text-align:right; font-size:.8rem; font-weight:700; color:#E00000; }
+.date-full{ color:var(--red); font-weight:700; text-transform:uppercase; }
+.price-block .badge{ margin-top:4px; text-align:right; font-size:.8rem; font-weight:700; color:var(--red); }
 
 .section-eyebrow{ font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.1em; font-size:.8rem; font-weight:700; color:var(--clay-dark); margin-bottom:8px; display:block; }
 
 .inc-section{ margin-top:26px; position:relative; }
-.inc-section::before{ content:''; position:absolute; top:-14px; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(43,32,22,.06) 15%, rgba(43,32,22,.06) 85%, transparent); }
+.inc-section::before{ content:''; position:absolute; top:-14px; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(var(--charcoal-rgb),.06) 15%, rgba(var(--charcoal-rgb),.06) 85%, transparent); }
 .inc-columns{ display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:12px; }
 .inc-columns > div{ padding:0 22px; }
 .inc-columns > div:first-child{ padding-left:0; }
@@ -62,16 +62,16 @@
 }
 
 .notes-callout{ margin-top:32px; border-left:3px solid var(--gold); padding:4px 20px; font-size:.86rem; line-height:1.8; position:relative; }
-.notes-callout::before{ content:''; position:absolute; top:-16px; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(43,32,22,.035) 15%, rgba(43,32,22,.035) 85%, transparent); }
-.notes-callout h4{ font-family:'Fraunces',serif; font-size:.9rem; margin:0 0 6px; }
+.notes-callout::before{ content:''; position:absolute; top:-16px; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(var(--charcoal-rgb),.035) 15%, rgba(var(--charcoal-rgb),.035) 85%, transparent); }
+.notes-callout h4{ font-family:var(--font-head); font-size:.9rem; margin:0 0 6px; }
 
 .res-card{ margin-top:40px; background:var(--ink); color:var(--cream); border-radius:16px; padding:30px; }
-.res-card h4{ font-family:'Fraunces',serif; font-size:1.1rem; margin-bottom:18px; }
+.res-card h4{ font-family:var(--font-head); font-size:1.1rem; margin-bottom:18px; }
 .res-contact{ display:flex; align-items:center; gap:22px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.12); font-size:.92rem; flex-wrap:wrap; }
 @media(max-width:480px){ .res-contact{ font-size:.84rem; gap:10px 16px; } }
 .res-contact:last-of-type{ border-bottom:none; }
 .res-contact a{ color:var(--gold); text-decoration:none; font-weight:600; }
-.res-howto-link{ color:#C2664A!important; text-decoration:none!important; font-weight:600!important; font-size:.84rem; }
+.res-howto-link{ color:var(--clay-soft)!important; text-decoration:none!important; font-weight:600!important; font-size:.84rem; }
 .res-links{ margin-top:16px; display:flex; gap:18px; flex-wrap:wrap; font-size:.86rem; }
 .res-links a{ color:var(--cream); opacity:.9; text-decoration:underline; }
 .res-links a:hover{ opacity:1; }
@@ -81,7 +81,7 @@
 .res-review{ border:1px solid rgba(255,255,255,.3); color:var(--cream)!important; }
 
 .related-wrap{ position:relative; margin-top:36px; padding-top:22px; }
-.related-wrap::before{ content:''; position:absolute; top:0; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(43,32,22,.06) 15%, rgba(43,32,22,.06) 85%, transparent); }
+.related-wrap::before{ content:''; position:absolute; top:0; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(var(--charcoal-rgb),.06) 15%, rgba(var(--charcoal-rgb),.06) 85%, transparent); }
 .related-scroll{ display:flex; gap:16px; overflow-x:auto; padding-bottom:10px; scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; scroll-behavior:smooth; }
 .related-scroll::-webkit-scrollbar{ display:none; }
 .related-scroll .ticket{ scroll-snap-align:start; flex:0 0 260px; }
@@ -90,7 +90,7 @@
 .related-arrow.next{ right:-14px; }
 
 /* Tourkarten identisch zur Turlar-Übersicht */
-.ticket{ background:var(--cream); border-radius:10px; overflow:hidden; box-shadow:0 18px 40px -20px rgba(27,36,56,.35); display:flex; flex-direction:column; text-decoration:none; color:inherit; }
+.ticket{ background:var(--cream); border-radius:10px; overflow:hidden; box-shadow:0 18px 40px -20px rgba(var(--ink-rgb),.35); display:flex; flex-direction:column; text-decoration:none; color:inherit; }
 .ticket-top{ padding:22px 20px 32px; color:#fff; position:relative; min-height:150px; display:flex; flex-direction:column; justify-content:flex-end; background-size:cover; background-position:center; }
 .ticket-top::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.65) 100%); z-index:0; }
 .ticket-top > *{ position:relative; z-index:1; }
@@ -101,8 +101,8 @@
 .pins-extra{ opacity:.55; margin-left:2px; }
 .ticket-foot{ display:flex; align-items:center; justify-content:space-between; padding-top:10px; border-top:1px solid var(--line); gap:10px; margin-top:auto; }
 .price-inline{ display:flex; align-items:baseline; gap:8px; }
-.price-inline .price{ font-family:'Fraunces',serif; font-weight:700; font-size:1.15rem; }
-.price-inline .status{ font-size:.74rem; font-weight:700; color:#E00000; }
+.price-inline .price{ font-family:var(--font-head); font-weight:700; font-size:1.15rem; }
+.price-inline .status{ font-size:.74rem; font-weight:700; color:var(--red); }
 .days-badge{ background:var(--clay); color:#fff; font-size:.76rem; font-weight:600; padding:8px 14px; border-radius:100px; white-space:nowrap; }
 .btn-wa-sm{ background:var(--clay); color:#fff!important; padding:8px 14px; border-radius:100px; text-decoration:none; font-size:.78rem; font-weight:600; white-space:nowrap; }
 </style>
@@ -137,7 +137,7 @@
 	$tour_years = array_filter( array_map( 'trim', explode( ',', get_post_meta( get_the_ID(), 'kervan_year', true ) ) ) );
 	$back_year = $tour_years ? $tour_years[0] : '';
 	?>
-	<a href="<?php echo esc_url( get_post_type_archive_link( 'tur' ) ); ?>#yil-<?php echo esc_attr( $back_year ); ?>" class="back-link">← <?php echo esc_html( 'Turlara Dön' ); ?></a>
+	<a href="<?php echo esc_url( get_post_type_archive_link( 'tur' ) ); ?>#yil-<?php echo esc_attr( $back_year ); ?>" class="back-link">← <?php echo esc_html( kervan_t( 'Turlara Dön' ) ); ?></a>
 
 	<div class="hero-slider" id="heroSlider" onclick="kervanOpenLightbox()">
 		<?php if ( $slide_ids ) : foreach ( $slide_ids as $i => $sid ) :
@@ -182,14 +182,14 @@
 				<h1><?php the_title(); ?></h1>
 			</div>
 			<div class="price-block">
-				<?php if ( $days ) : ?><div class="days-label"><?php echo esc_html( $days ) . ' ' . esc_html( 'GÜN' ); ?></div><?php endif; ?>
-				<div class="price-line"><span class="price"><?php echo esc_html( $price ); ?></span> <small><?php echo esc_html( 'kişi başı' ); ?></small></div>
+				<?php if ( $days ) : ?><div class="days-label"><?php echo esc_html( $days ) . ' ' . esc_html( kervan_t( 'GÜN' ) ); ?></div><?php endif; ?>
+				<div class="price-line"><span class="price"><?php echo esc_html( $price ); ?></span> <small><?php echo esc_html( kervan_t( 'kişi başı' ) ); ?></small></div>
 				<?php if ( $badge ) : ?><div class="badge<?php echo kervan_badge_is_full( $badge ) ? ' badge-full' : ''; ?>"><?php echo esc_html( $badge ); ?></div><?php endif; ?>
 			</div>
 		</div>
 
 		<?php if ( $dates ) : ?>
-		<span class="section-eyebrow" style="margin-top:0px;"><?php echo esc_html( 'Tarihler' ); ?></span>
+		<span class="section-eyebrow" style="margin-top:0px;"><?php echo esc_html( kervan_t( 'Tarihler' ) ); ?></span>
 		<div class="date-list">
 			<?php foreach ( $dates as $dk => $d ) : ?>
 			<div class="date-line"><?php echo preg_replace( '/\((dolu|doldu|full)\)/i', '<span class="date-full">($1)</span>', esc_html( $d ) ); ?><?php if ( ! empty( $date_ops[ $dk ] ) ) : ?> <span class="date-op">· <?php echo esc_html( $date_ops[ $dk ] ); ?></span><?php endif; ?></div>
@@ -201,7 +201,7 @@
 		$places = kervan_parse_places( get_post_meta( get_the_ID(), 'kervan_places', true ) );
 		if ( $places ) :
 		?>
-		<span class="section-eyebrow" style="margin-top:38px;">Gezilecek Yerler</span>
+		<span class="section-eyebrow" style="margin-top:38px;"><?php echo esc_html( kervan_t( 'Gezilecek Yerler' ) ); ?></span>
 		<?php foreach ( $places as $place_name => $items ) : ?>
 			<div class="place-block">
 				<h4>📍 <?php echo esc_html( $place_name ); ?></h4>
@@ -225,8 +225,8 @@
 	<div class="inc-section">
 	<div class="content-inner">
 		<div class="inc-columns">
-			<?php if ( $included ) : ?><div><h4><?php echo esc_html( 'Fiyata Dahil' ); ?></h4><ul><?php foreach ( $included as $i ) echo '<li>' . esc_html( $i ) . '</li>'; ?></ul></div><?php endif; ?>
-			<?php if ( $notincluded ) : ?><div><h4><?php echo esc_html( 'Dahil Olmayan' ); ?></h4><ul class="not"><?php foreach ( $notincluded as $i ) echo '<li>' . esc_html( $i ) . '</li>'; ?></ul></div><?php endif; ?>
+			<?php if ( $included ) : ?><div><h4><?php echo esc_html( kervan_t( 'Fiyata Dahil' ) ); ?></h4><ul><?php foreach ( $included as $i ) echo '<li>' . esc_html( $i ) . '</li>'; ?></ul></div><?php endif; ?>
+			<?php if ( $notincluded ) : ?><div><h4><?php echo esc_html( kervan_t( 'Dahil Olmayan' ) ); ?></h4><ul class="not"><?php foreach ( $notincluded as $i ) echo '<li>' . esc_html( $i ) . '</li>'; ?></ul></div><?php endif; ?>
 		</div>
 	</div>
 	</div>
@@ -234,7 +234,7 @@
 
 	<?php if ( $notes ) : ?>
 	<div class="notes-callout">
-		<h4>🚨 <?php echo 'Not'; ?></h4>
+		<h4>🚨 <?php echo esc_html( kervan_t( 'Not' ) ); ?></h4>
 		<?php foreach ( $notes as $n ) echo '<div>• ' . esc_html( $n ) . '</div>'; ?>
 	</div>
 	<?php endif; ?>
@@ -250,12 +250,19 @@
 		$contacts[] = array( kervan_get_option( 'kervan_contact2_name' ), kervan_get_option( 'kervan_contact2_phone' ) );
 		$contacts[] = array( kervan_get_option( 'kervan_contact3_name' ), kervan_get_option( 'kervan_contact3_phone' ) );
 	}
-	$flyer_id = get_post_meta( get_the_ID(), '_kervan_flyer', true );
+	$flyer_id   = get_post_meta( get_the_ID(), '_kervan_flyer', true );
+	$flyer_afis = absint( get_post_meta( get_the_ID(), '_kervan_flyer_afis', true ) );
+	if ( $flyer_afis && get_post_status( $flyer_afis ) === 'publish' ) {
+		$linked_file = get_post_meta( $flyer_afis, '_kervan_afis_file', true );
+		if ( $linked_file ) {
+			$flyer_id = $linked_file; // verknüpfte Afiş hat Vorrang vor der eigenen Datei
+		}
+	}
 	$howto_key = in_array( 'dunya', $group_list, true ) ? 'kervan_kayit_bilgi_image_dunya' : 'kervan_kayit_bilgi_image_tr';
 	$howto_img = kervan_get_option( $howto_key );
 	?>
 	<div class="res-card">
-		<h4><?php echo 'Rezervasyon & Bilgi'; ?></h4>
+		<h4><?php echo esc_html( kervan_t( 'Rezervasyon & Bilgi' ) ); ?></h4>
 		<?php foreach ( $contacts as $c ) :
 			$digits = preg_replace( '/\D/', '', $c[1] );
 		?>
@@ -263,20 +270,20 @@
 				<span><?php echo esc_html( $c[0] ); ?>&nbsp;&nbsp;<?php echo esc_html( $c[1] ); ?></span>
 				<span style="display:flex; align-items:center; gap:14px;">
 					<?php if ( $howto_img ) : ?>
-					<a href="#" onclick="document.getElementById('kervanHowtoModal').style.display='flex'; return false;">Kayıt Formu</a>
+					<a href="#" onclick="document.getElementById('kervanHowtoModal').style.display='flex'; return false;"><?php echo esc_html( kervan_t( 'Kayıt Formu' ) ); ?></a>
 					<?php endif; ?>
-					<a href="#" class="res-howto-link" onclick="kervanOpenKayitForm('<?php echo esc_js( $digits ); ?>'); return false;">Kayıt Ol</a>
+					<a href="#" class="res-howto-link" onclick="kervanOpenKayitForm('<?php echo esc_js( $digits ); ?>'); return false;"><?php echo esc_html( kervan_t( 'Kayıt Ol' ) ); ?></a>
 				</span>
 			</div>
 		<?php endforeach; ?>
 		<div class="res-links">
 			<?php if ( kervan_get_option( 'kervan_instagram' ) ) : ?><a href="<?php echo esc_url( kervan_get_option( 'kervan_instagram' ) ); ?>" target="_blank">Instagram</a><?php endif; ?>
 			<?php if ( kervan_get_option( 'kervan_facebook' ) ) : ?><a href="<?php echo esc_url( kervan_get_option( 'kervan_facebook' ) ); ?>" target="_blank">Facebook</a><?php endif; ?>
-			<?php if ( kervan_get_option( 'kervan_wa_channel' ) ) : ?><a href="<?php echo esc_url( kervan_get_option( 'kervan_wa_channel' ) ); ?>" target="_blank">WhatsApp-Kanal</a><?php endif; ?>
+			<?php if ( kervan_get_option( 'kervan_wa_channel' ) ) : ?><a href="<?php echo esc_url( kervan_get_option( 'kervan_wa_channel' ) ); ?>" target="_blank"><?php echo esc_html( kervan_t( 'WhatsApp-Kanal' ) ); ?></a><?php endif; ?>
 		</div>
 		<div class="res-bottom-row">
-			<?php if ( $flyer_id ) : ?><a class="res-flyer" href="<?php echo esc_url( wp_get_attachment_url( $flyer_id ) ); ?>" target="_blank">📄 <?php echo 'Tur Afişi İndir'; ?></a><?php endif; ?>
-			<a class="res-review" href="<?php echo esc_url( kervan_get_option( 'kervan_google_url' ) ); ?>" target="_blank"><?php echo 'Yorum Yap'; ?></a>
+			<?php if ( $flyer_id ) : ?><a class="res-flyer" href="<?php echo esc_url( wp_get_attachment_url( $flyer_id ) ); ?>" target="_blank">📄 <?php echo esc_html( kervan_t( 'Tur Afişi İndir' ) ); ?></a><?php endif; ?>
+			<a class="res-review" href="<?php echo esc_url( kervan_get_option( 'kervan_google_url' ) ); ?>" target="_blank"><?php echo esc_html( kervan_t( 'Yorum Yap' ) ); ?></a>
 		</div>
 	</div>
 
@@ -317,7 +324,7 @@
 	if ( $related ) :
 	?>
 	<div class="related-wrap">
-		<span class="section-eyebrow"><?php echo esc_html( 'İlgili Turlar' ); ?></span>
+		<span class="section-eyebrow"><?php echo esc_html( kervan_t( 'İlgili Turlar' ) ); ?></span>
 		<div class="related-scroll" id="relatedScroll">
 			<?php foreach ( $related as $r ) :
 				$r_id = $r->ID;
@@ -341,7 +348,7 @@
 					<?php if ( $pins_txt ) : ?><div class="ticket-pins">📍 <?php echo esc_html( $pins_txt ); ?></div><?php endif; ?>
 					<div class="ticket-foot">
 						<div class="price-inline"><span class="price"><?php echo esc_html( $r_price ); ?></span><?php if ( $r_badge ) : ?><span class="status"><?php echo esc_html( $r_badge ); ?></span><?php endif; ?></div>
-						<?php if ( $r_days ) : ?><span class="days-badge"><?php echo esc_html( $r_days ); ?> <?php echo esc_html( 'GÜN' ); ?></span><?php endif; ?>
+						<?php if ( $r_days ) : ?><span class="days-badge"><?php echo esc_html( $r_days ); ?> <?php echo esc_html( kervan_t( 'GÜN' ) ); ?></span><?php endif; ?>
 					</div>
 				</div>
 			</a>
@@ -371,7 +378,7 @@ function heroMove(dir){
 </script>
 
 <?php if ( $howto_img ) : ?>
-<div id="kervanHowtoModal" onclick="if(event.target===this) this.style.display='none';" style="display:none; position:fixed; inset:0; z-index:260; background:rgba(27,36,56,.75); align-items:center; justify-content:center; padding:24px;">
+<div id="kervanHowtoModal" onclick="if(event.target===this) this.style.display='none';" style="display:none; position:fixed; inset:0; z-index:260; background:rgba(var(--ink-rgb),.75); align-items:center; justify-content:center; padding:24px;">
 	<div style="background:var(--cream); border-radius:16px; padding:24px; max-width:480px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
 		<button onclick="document.getElementById('kervanHowtoModal').style.display='none';" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:1.3rem; cursor:pointer; line-height:1;">✕</button>
 		<a href="<?php echo esc_url( wp_get_attachment_url( $howto_img ) ); ?>" download style="display:inline-block; background:var(--ink); color:#fff; padding:9px 18px; border-radius:100px; text-decoration:none; font-weight:600; font-size:.84rem; margin-bottom:14px;">⬇ İndir</a>
@@ -380,10 +387,10 @@ function heroMove(dir){
 </div>
 <?php endif; ?>
 
-<div id="kervanKayitModal" onclick="if(event.target===this) kervanCloseKayitForm();" style="display:none; position:fixed; inset:0; z-index:220; background:rgba(27,36,56,.8); align-items:center; justify-content:center; padding:16px;">
+<div id="kervanKayitModal" onclick="if(event.target===this) kervanCloseKayitForm();" style="display:none; position:fixed; inset:0; z-index:220; background:rgba(var(--ink-rgb),.8); align-items:center; justify-content:center; padding:16px;">
 	<div style="background:var(--cream,#FBF6EC); border-radius:16px; padding:26px 22px; max-width:480px; width:100%; max-height:88vh; overflow-y:auto; position:relative;">
 		<button onclick="kervanCloseKayitForm();" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:1.3rem; cursor:pointer; line-height:1;">✕</button>
-		<h3 style="font-family:'Fraunces',serif; margin:0 0 4px;">Kayıt Formu</h3>
+		<h3 style="font-family:var(--font-head); margin:0 0 4px;">Kayıt Formu</h3>
 		<p style="font-size:.82rem; opacity:.7; margin:0 0 4px;"><?php the_title(); ?></p>
 		<p style="font-size:.82rem; opacity:.7; margin:0 0 16px;">Bilgilerinizi doldurun, WhatsApp'ta size hazır bir mesaj açılacak ve sadece göndermeniz yeterli (göndermeden önce değişiklik yapabilirsiniz). Ardından pasaport belgenizi yollamayı unutmayınız.</p>
 
@@ -410,8 +417,8 @@ function heroMove(dir){
 
 		<label style="display:block; font-size:.82rem; font-weight:600; margin-bottom:6px;">Kimin için kayıt yapıyorsunuz?</label>
 		<div style="display:flex; gap:16px; margin-bottom:14px; font-size:.86rem;">
-			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim de katılıyorum</label>
-			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler)</label>
+			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitKendim" onchange="kervanUpdatePersonAddButton()"> Kendim için</label>
+			<label style="display:flex; align-items:center; gap:6px;"><input type="checkbox" id="kervanKayitBaska" onchange="kervanOnBaskaToggle()"> Başka kişi(ler) için</label>
 		</div>
 
 		<?php if ( in_array( 'dunya', $group_list, true ) ) : ?>
@@ -442,7 +449,7 @@ function heroMove(dir){
 			<a href="#" onclick="kervanCopyKayitMessage(event)" style="color:#888; text-decoration:underline; font-size:.72rem;">Mesajı panoya kopyala (kendiniz göndermek isterseniz)</a>
 		</div>
 
-		<button type="button" onclick="kervanSubmitKayitForm()" style="width:100%; background:#4CAF50; color:#fff; border:none; padding:13px; border-radius:100px; font-weight:700; font-size:.9rem; cursor:pointer;">WhatsApp'a Devam Et</button>
+		<button type="button" onclick="kervanSubmitKayitForm()" style="width:100%; background:var(--green); color:#fff; border:none; padding:13px; border-radius:100px; font-weight:700; font-size:.9rem; cursor:pointer;">WhatsApp'a Devam Et</button>
 	</div>
 </div>
 
@@ -554,7 +561,7 @@ function kervanAddKayitRoom(){
 	toggleBtn.style.cssText = 'position:absolute; right:5px; top:5px; bottom:5px; width:26px; border:none; background:rgba(0,0,0,.06); border-radius:6px; cursor:pointer; font-size:1.1rem; opacity:1; color:var(--charcoal,#2B2016);';
 
 	var dropdown = document.createElement('div');
-	dropdown.style.cssText = 'display:none; position:absolute; top:100%; left:0; right:0; margin-top:4px; background:var(--cream,#FBF6EC); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 20px -8px rgba(27,36,56,.35); z-index:5; max-height:180px; overflow-y:auto;';
+	dropdown.style.cssText = 'display:none; position:absolute; top:100%; left:0; right:0; margin-top:4px; background:var(--cream,#FBF6EC); border:1px solid var(--line); border-radius:8px; box-shadow:0 8px 20px -8px rgba(var(--ink-rgb),.35); z-index:5; max-height:180px; overflow-y:auto;';
 	kervanRoomTypeChoices.forEach(function(opt){
 		var item = document.createElement('div');
 		item.textContent = opt;

@@ -113,7 +113,7 @@ function kervan_render_ticket( $t, $post, $featured = false ) {
 		data-past="<?php echo $t['badgePast'] ? '1' : '0'; ?>">
 		<div class="ticket-top" style="<?php echo $bg; ?>">
 			<span class="fav-since" data-fav-since></span>
-			<?php if ( ! $t['badgePast'] ) : ?><span class="fav-heart" data-fav-heart="<?php echo esc_attr( $t['id'] ); ?>" onclick="kervanToggleFav(event, this)" role="button" aria-label="Favorilere ekle" tabindex="0">🤍</span><?php endif; ?>
+			<?php if ( ! $t['badgePast'] ) : ?><span class="fav-heart" data-fav-heart="<?php echo esc_attr( $t['id'] ); ?>" onclick="kervanToggleFav(event, this)" role="button" aria-label="<?php echo esc_attr( kervan_t( 'Favorilere ekle' ) ); ?>" tabindex="0">🤍</span><?php endif; ?>
 			<h3><?php echo esc_html( $post->post_title ); ?></h3>
 		</div>
 		<div class="ticket-body">
@@ -121,7 +121,7 @@ function kervan_render_ticket( $t, $post, $featured = false ) {
 				$shown_dates = array_slice( $t['dates'], 0, 2 );
 			?>
 			<div class="ticket-dates">📅
-				<?php foreach ( $shown_dates as $i => $d ) : ?><?php echo $i > 0 ? ' <span style="opacity:.4;">|</span> ' : ''; ?><?php echo esc_html( $d['d'] ); ?><?php if ( $d['full'] ) echo ' <span style="color:#E00000;font-weight:700;">(DOLU)</span>'; ?><?php endforeach; ?>
+				<?php foreach ( $shown_dates as $i => $d ) : ?><?php echo $i > 0 ? ' <span style="opacity:.4;">|</span> ' : ''; ?><?php echo esc_html( $d['d'] ); ?><?php if ( $d['full'] ) echo ' <span style="color:var(--red);font-weight:700;">(DOLU)</span>'; ?><?php endforeach; ?>
 				<?php if ( count( $t['dates'] ) > 2 ) : ?><span class="pins-extra">+<?php echo count( $t['dates'] ) - 2; ?></span><?php endif; ?>
 			</div>
 			<?php endif; ?>
@@ -148,28 +148,28 @@ function kervan_normalize_tr( $str ) {
 .tours-wrap{ max-width:1180px; margin:0 auto; padding:20px 20px 70px; position:relative; z-index:1; }
 body.post-type-archive-tur{ background:linear-gradient(135deg, #F6EFDF 0%, var(--cream) 40%, var(--cream) 60%, #F6EFDF 100%); }
 .year-heading{ display:flex; align-items:baseline; gap:14px; margin:6px 0 24px; }
-.year-word{ font-family:'Fraunces',serif; font-weight:700; border:none; background:none; cursor:pointer; padding:0; color:var(--charcoal); font-size:clamp(1.8rem,3.6vw,2.6rem); opacity:.32; transition:all .25s ease; }
+.year-word{ font-family:var(--font-head); font-weight:700; border:none; background:none; cursor:pointer; padding:0; color:var(--charcoal); font-size:clamp(1.8rem,3.6vw,2.6rem); opacity:.32; transition:all .25s ease; }
 .year-word.active{ opacity:1; color:var(--clay); font-size:clamp(2.1rem,4.2vw,3rem); }
 .year-sep{ font-size:1.4rem; opacity:.3; font-weight:300; }
 
 .search-row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-.filter-toggle{ display:inline-flex; align-items:center; gap:8px; border:none; background:linear-gradient(135deg, #D9C39E, #C7AD80); color:var(--charcoal); padding:12px 22px; border-radius:100px; font-weight:700; font-size:.86rem; cursor:pointer; box-shadow:0 10px 24px -14px rgba(27,36,56,.35); }
-.filter-toggle .count{ background:#C2664A; color:#fff; border-radius:100px; padding:1px 8px; font-size:.72rem; }
+.filter-toggle{ display:inline-flex; align-items:center; gap:8px; border:none; background:linear-gradient(135deg, #D9C39E, #C7AD80); color:var(--charcoal); padding:12px 22px; border-radius:100px; font-weight:700; font-size:.86rem; cursor:pointer; box-shadow:0 10px 24px -14px rgba(var(--ink-rgb),.35); }
+.filter-toggle .count{ background:var(--clay-soft); color:#fff; border-radius:100px; padding:1px 8px; font-size:.72rem; }
 .search-box{ position:relative; flex:1; min-width:220px; }
-.search-box input{ width:100%; padding:13px 16px 13px 40px; border-radius:100px; border:1px solid var(--line); font-family:inherit; font-size:.9rem; background:var(--cream); box-shadow:0 6px 18px -14px rgba(27,36,56,.4); }
+.search-box input{ width:100%; padding:13px 16px 13px 40px; border-radius:100px; border:1px solid var(--line); font-family:inherit; font-size:.9rem; background:var(--cream); box-shadow:0 6px 18px -14px rgba(var(--ink-rgb),.4); }
 .search-box .ic{ position:absolute; left:15px; top:50%; transform:translateY(-50%); opacity:.5; }
 .filter-panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
 .filter-panel.open{ max-height:320px; }
-.filter-panel-inner{ background:linear-gradient(150deg, var(--sand) 0%, #F6ECD9 60%, var(--sand) 100%); border-radius:16px; padding:20px 22px; margin-bottom:20px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; box-shadow:0 16px 34px -22px rgba(27,36,56,.45), inset 0 1px 0 rgba(255,255,255,.5); }
+.filter-panel-inner{ background:linear-gradient(150deg, var(--sand) 0%, #F6ECD9 60%, var(--sand) 100%); border-radius:16px; padding:20px 22px; margin-bottom:20px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; box-shadow:0 16px 34px -22px rgba(var(--ink-rgb),.45), inset 0 1px 0 rgba(255,255,255,.5); }
 .filter-group-label{ font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; opacity:.75; margin-right:8px; }
 .chip-row{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
-.chip{ border:none; background:#E8D9BC; padding:8px 15px; border-radius:100px; font-size:.78rem; font-weight:500; cursor:pointer; opacity:.85; box-shadow:0 4px 10px -6px rgba(27,36,56,.25); transition:all .15s ease; }
+.chip{ border:none; background:#E8D9BC; padding:8px 15px; border-radius:100px; font-size:.78rem; font-weight:500; cursor:pointer; opacity:.85; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); transition:all .15s ease; }
 .chip:hover{ opacity:1; transform:translateY(-1px); }
-.chip.active{ background:linear-gradient(135deg, var(--ink), #2A2038); color:#fff; opacity:1; box-shadow:0 6px 16px -8px rgba(27,36,56,.6); }
-.fav-toggle{ border:none; background:#E8D9BC; color:var(--charcoal); padding:8px 16px; border-radius:100px; font-size:.8rem; font-weight:600; cursor:pointer; box-shadow:0 4px 10px -6px rgba(27,36,56,.25); transition:all .15s ease; }
-.fav-toggle.active{ background:linear-gradient(135deg, #C2664A, #9C462C); color:#fff; box-shadow:0 6px 16px -8px rgba(194,102,74,.55); }
+.chip.active{ background:linear-gradient(135deg, var(--ink), var(--plum)); color:#fff; opacity:1; box-shadow:0 6px 16px -8px rgba(var(--ink-rgb),.6); }
+.fav-toggle{ border:none; background:#E8D9BC; color:var(--charcoal); padding:8px 16px; border-radius:100px; font-size:.8rem; font-weight:600; cursor:pointer; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); transition:all .15s ease; }
+.fav-toggle.active{ background:linear-gradient(135deg, var(--clay-soft), var(--clay-dark)); color:#fff; box-shadow:0 6px 16px -8px rgba(194,102,74,.55); }
 .filter-row-inline{ display:flex; align-items:center; gap:8px; font-size:.82rem; }
-.filter-row-inline select{ font-family:inherit; padding:8px 14px; border-radius:100px; border:none; background-color:#E8D9BC; color:var(--charcoal); font-size:.8rem; box-shadow:0 4px 10px -6px rgba(27,36,56,.25); appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232B2016' stroke-width='1.4' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; background-size:10px 7px; padding-right:30px; }
+.filter-row-inline select{ font-family:inherit; padding:8px 14px; border-radius:100px; border:none; background-color:#E8D9BC; color:var(--charcoal); font-size:.8rem; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232B2016' stroke-width='1.4' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; background-size:10px 7px; padding-right:30px; }
 .filter-row-inline select option{ color:var(--charcoal); background:var(--cream); }
 .filter-row-inline select option:disabled{ color:#B5AB9A; }
 .clear-link{ font-size:.76rem; text-decoration:underline; opacity:.6; cursor:pointer; background:none; border:none; margin-left:auto; }
@@ -180,12 +180,12 @@ body.post-type-archive-tur{ background:linear-gradient(135deg, #F6EFDF 0%, var(-
 @media(max-width:980px){ .highlight-grid, .tour-grid{grid-template-columns:repeat(2,1fr);} }
 @media(max-width:640px){ .highlight-grid, .tour-grid{grid-template-columns:1fr;} }
 
-.ticket{ background:var(--cream); border-radius:10px; overflow:hidden; box-shadow:0 18px 40px -20px rgba(27,36,56,.35); display:flex; flex-direction:column; text-decoration:none; color:inherit; }
+.ticket{ background:var(--cream); border-radius:10px; overflow:hidden; box-shadow:0 18px 40px -20px rgba(var(--ink-rgb),.35); display:flex; flex-direction:column; text-decoration:none; color:inherit; }
 .fav-heart{ position:absolute!important; top:14px; right:14px; z-index:2; font-size:1.15rem; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s ease; filter:drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
 .fav-heart.pop{ animation:favPop .35s ease; }
 @keyframes favPop{ 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
 .fav-since{ position:absolute!important; top:14px; left:14px; z-index:2; background:rgba(0,0,0,.4); color:#fff; font-size:.66rem; font-weight:600; padding:5px 10px; border-radius:100px; display:none; }
-.ticket.featured{ box-shadow:0 22px 46px -18px rgba(189,91,59,.45); border:1.5px solid var(--gold); }
+.ticket.featured{ box-shadow:0 22px 46px -18px rgba(var(--clay-rgb),.45); border:1.5px solid var(--gold); }
 .ticket-top{ padding:22px 20px 32px; color:#fff; position:relative; min-height:150px; display:flex; flex-direction:column; justify-content:flex-end; background-size:cover; background-position:center; }
 .ticket-top::after{ content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,.65) 100%); z-index:0; }
 .ticket-top > *{ position:relative; z-index:1; }
@@ -196,14 +196,14 @@ body.post-type-archive-tur{ background:linear-gradient(135deg, #F6EFDF 0%, var(-
 .pins-extra{ opacity:.55; margin-left:2px; }
 .ticket-foot{ display:flex; align-items:center; justify-content:space-between; padding-top:10px; border-top:1px solid var(--line); gap:10px; margin-top:auto; }
 .price-inline{ display:flex; align-items:baseline; gap:8px; }
-.price-inline .price{ font-family:'Fraunces',serif; font-weight:700; font-size:1.15rem; }
-.price-inline .status{ font-size:.74rem; font-weight:700; color:#E00000; }
+.price-inline .price{ font-family:var(--font-head); font-weight:700; font-size:1.15rem; }
+.price-inline .status{ font-size:.74rem; font-weight:700; color:var(--red); }
 .ticket-full{ cursor:default; }
 .ticket-past .ticket-body{ opacity:.7; }
 .days-badge{ background:var(--clay); color:#fff; font-size:.76rem; font-weight:600; padding:8px 14px; border-radius:100px; white-space:nowrap; }
 .faq-section{ margin-top:60px; max-width:760px; }
 .faq-item{ border-bottom:1px solid var(--line); padding:14px 0; }
-.faq-item summary{ cursor:pointer; font-weight:600; font-family:'Fraunces',serif; font-size:1.05rem; list-style:none; display:flex; justify-content:space-between; align-items:center; }
+.faq-item summary{ cursor:pointer; font-weight:600; font-family:var(--font-head); font-size:1.05rem; list-style:none; display:flex; justify-content:space-between; align-items:center; }
 .faq-item summary::-webkit-details-marker{ display:none; }
 .faq-item summary::after{ content:'+'; font-size:1.3rem; color:var(--clay); }
 .faq-item[open] summary::after{ content:'–'; }
@@ -227,13 +227,13 @@ $highlighted_posts = array_filter( $tour_posts, function( $p ) use ( $tour_data 
 ?>
 
 <div class="tours-wrap">
-	<div class="eyebrow" style="font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:.85rem; font-weight:700; color:var(--clay-dark);">TURLAR</div>
+	<div class="eyebrow" style="font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:.14em; font-size:.85rem; font-weight:700; color:var(--clay-dark);"><?php echo esc_html( kervan_t( 'TURLAR' ) ); ?></div>
 	<h1 class="year-heading" id="yearHeading">
 		<?php foreach ( $all_years as $i => $y ) : ?>
 			<?php if ( $i > 0 ) echo '<span class="year-sep">/</span>'; ?>
 			<button class="year-word<?php echo $y === $default_year ? ' active' : ''; ?>" data-year="<?php echo esc_attr( $y ); ?>"><?php echo esc_html( $y ); ?></button>
 		<?php endforeach; ?>
-		<?php if ( ! $all_years ) echo '<span style="font-family:\'Fraunces\',serif;font-size:1.8rem;">Turlarımız</span>'; ?>
+		<?php if ( ! $all_years ) echo '<span style="font-family:var(--font-head);font-size:1.8rem;">' . esc_html( kervan_t( 'Turlarımız' ) ) . '</span>'; ?>
 	</h1>
 
 	<div class="search-row">
@@ -273,7 +273,7 @@ $highlighted_posts = array_filter( $tour_posts, function( $p ) use ( $tour_data 
 
 	<?php if ( $highlighted_posts ) : ?>
 	<div class="highlight-strip" id="highlightWrap">
-		<span class="eyebrow" style="color:var(--clay-dark); display:block; margin-bottom:12px;">ÖNE ÇIKANLAR</span>
+		<span class="eyebrow" style="color:var(--clay-dark); display:block; margin-bottom:12px;"><?php echo esc_html( kervan_t( 'ÖNE ÇIKANLAR' ) ); ?></span>
 		<div class="highlight-grid">
 			<?php foreach ( $highlighted_posts as $p ) : kervan_render_ticket( $tour_data[ $p->ID ], $p, true ); endforeach; ?>
 		</div>
@@ -285,7 +285,7 @@ $highlighted_posts = array_filter( $tour_posts, function( $p ) use ( $tour_data 
 	</div>
 	<p id="emptyMsg" style="display:none; opacity:.6;"><?php echo kervan_ft( 'Bu filtreye uygun tur yok.' ); ?></p>
 
-	<div id="kervanDunya2027Notice" style="display:none; margin-top:24px; background:linear-gradient(135deg, var(--ink), #2A2038); color:#fff; border-radius:14px; padding:20px 24px; text-align:center; font-size:.92rem;">
+	<div id="kervanDunya2027Notice" style="display:none; margin-top:24px; background:linear-gradient(135deg, var(--ink), var(--plum)); color:#fff; border-radius:14px; padding:20px 24px; text-align:center; font-size:.92rem;">
 		🌍 <strong><?php echo kervan_ft( 'Dünya Turları 2027 son aşamada!' ); ?></strong> <?php echo kervan_ft( 'Türkiye Turları\'na ek olarak, Dünya Turları da yakında burada yayında olacak.' ); ?>
 	</div>
 </div>
@@ -313,6 +313,7 @@ let year = '<?php echo esc_js( $default_year ); ?>';
 	if (m && document.querySelector('.year-word[data-year="' + m[1] + '"]')) {
 		year = m[1];
 		localStorage.setItem('kervanSelectedYear', year);
+		history.replaceState(null, '', location.pathname + location.search); // Anker aus der Adresszeile entfernen, das Jahr ist gespeichert
 	}
 	document.querySelectorAll('.year-word').forEach(x=>x.classList.remove('active'));
 	document.querySelector('.year-word[data-year="' + year + '"]')?.classList.add('active');
@@ -377,7 +378,12 @@ function updateMonthOptions(){
 }
 
 function activeFilterCount(){
-	let n=0; if(selectedConts.length>0) n++; if(+fromSel.value!==availMin || +toSel.value!==availMax) n++; return n;
+	let n=0;
+	if(selectedConts.length>0) n++;
+	if(+fromSel.value!==availMin || +toSel.value!==availMax) n++;
+	if(document.getElementById('sortSelect').value!=='default') n++;
+	if(kervanFavOnly) n++;
+	return n;
 }
 
 function render(){
@@ -436,7 +442,7 @@ document.getElementById('searchInput').addEventListener('input', render);
 document.getElementById('filterToggle').addEventListener('click', ()=> document.getElementById('filterPanel').classList.toggle('open'));
 document.getElementById('clearFilters').addEventListener('click', ()=>{
 	selectedConts=[]; document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
-	fromSel.value=1; toSel.value=12; document.getElementById('searchInput').value=''; kervanFavOnly=false; document.getElementById('favOnlyToggle').classList.remove('active'); render();
+	fromSel.value=1; toSel.value=12; document.getElementById('sortSelect').value='default'; document.getElementById('searchInput').value=''; kervanFavOnly=false; document.getElementById('favOnlyToggle').classList.remove('active'); render();
 });
 
 function kervanGetFavs(){
@@ -517,16 +523,16 @@ render();
 </script>
 
 <div class="tour-wish" style="max-width:640px; margin:30px auto 0; padding:32px 28px; background:var(--sand); border-radius:16px; text-align:center;">
-	<p style="font-family:'Fraunces',serif; font-style:italic; font-size:1.05rem; margin:0 0 16px;">"Keşke bu tur olsa da Kervan'la gitsem" dediğiniz bir yer var mı?</p>
+	<p style="font-family:var(--font-head); font-style:italic; font-size:1.05rem; margin:0 0 16px;"><?php echo esc_html( kervan_t( '"Keşke bu tur olsa da Kervan\'la gitsem" dediğiniz bir yer var mı?' ) ); ?></p>
 	<?php if ( isset( $_GET['tur_istegi'] ) && $_GET['tur_istegi'] === 'ok' ) : ?>
-		<p style="color:var(--teal); font-size:.88rem;">Teşekkürler, öneriniz bize ulaştı!</p>
+		<p style="color:var(--teal); font-size:.88rem;"><?php echo esc_html( kervan_t( 'Teşekkürler, öneriniz bize ulaştı!' ) ); ?></p>
 	<?php endif; ?>
 	<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
 		<input type="hidden" name="action" value="kervan_tour_wish">
 		<?php wp_nonce_field( 'kervan_tour_wish', 'kervan_wish_nonce' ); ?>
 		<input type="text" name="kervan_hp2" style="position:absolute; left:-9999px;" tabindex="-1" autocomplete="off">
-		<input type="text" name="kervan_wish_place" required placeholder="Örn. Yeni Zelanda, İtalya, Norveç…" style="flex:1; min-width:220px; padding:12px 16px; border-radius:100px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; background:var(--cream);">
-		<button type="submit" style="background:var(--ink); color:#fff; border:none; padding:12px 24px; border-radius:100px; font-weight:600; font-size:.86rem; cursor:pointer;">Gönder</button>
+		<input type="text" name="kervan_wish_place" required placeholder="<?php echo esc_attr( kervan_t( 'Örn. Yeni Zelanda, İtalya, Norveç…' ) ); ?>" style="flex:1; min-width:220px; padding:12px 16px; border-radius:100px; border:1px solid var(--line); font-family:inherit; font-size:.86rem; background:var(--cream);">
+		<button type="submit" style="background:var(--ink); color:#fff; border:none; padding:12px 24px; border-radius:100px; font-weight:600; font-size:.86rem; cursor:pointer;"><?php echo esc_html( kervan_t( 'Gönder' ) ); ?></button>
 	</form>
 </div>
 

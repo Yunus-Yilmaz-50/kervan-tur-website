@@ -1,5 +1,5 @@
 	<style>
-		.kervan-footer{ background:linear-gradient(135deg, var(--ink,#1B2438) 0%, #2A2038 55%, var(--clay-dark,#9C462C) 130%); color:#fff; padding:34px 20px; margin-top:0; }
+		.kervan-footer{ background:linear-gradient(135deg, var(--ink,#1B2438) 0%, var(--plum) 55%, var(--clay-dark,#9C462C) 130%); color:#fff; padding:34px 20px; margin-top:0; }
 		.kervan-footer .wrap{ max-width:1180px; margin:0 auto; }
 		.kervan-footer-row{ display:flex; flex-wrap:wrap; gap:10px 26px; justify-content:center; font-size:.86rem; margin-bottom:18px; }
 		.kervan-footer-row a{ color:#fff; text-decoration:none; }
@@ -11,11 +11,7 @@
 	<footer class="kervan-footer">
 		<div class="wrap">
 			<div class="kervan-footer-row">
-				<span><?php echo esc_html( kervan_get_option( 'kervan_email' ) ); ?></span>
-				<a href="<?php echo esc_url( kervan_get_option( 'kervan_instagram' ) ); ?>" target="_blank">Instagram</a>
-				<a href="<?php echo esc_url( kervan_get_option( 'kervan_facebook' ) ); ?>" target="_blank">Facebook</a>
-				<a href="<?php echo esc_url( kervan_get_option( 'kervan_wa_channel' ) ); ?>" target="_blank">WhatsApp-Kanal</a>
-				<span><?php echo esc_html( 'Avrupa Turları:' ); ?> <a href="<?php echo esc_url( kervan_get_option( 'kervan_avrupatur_url' ) ); ?>" target="_blank">avrupatur.de</a></span>
+				<?php echo kervan_render_footer_links(); ?>
 			</div>
 
 			<?php
@@ -38,7 +34,7 @@
 			<?php endif; ?>
 
 			<div class="kervan-footer-bottom">
-				<span>© <?php echo esc_html( date( 'Y' ) ); ?> Kervan Kültür Turlari</span>
+				<span>© <?php echo esc_html( date( 'Y' ) ); ?> <?php echo esc_html( kervan_get_option( 'kervan_footer_copy' ) ); ?></span>
 			</div>
 		</div>
 	</footer>

@@ -10,13 +10,35 @@ Text Domain: kervan-tur
 :root{
   --ink:#1B2438; --ink-2:#232F49; --teal:#2F6E6C; --clay:#BD5B3B; --clay-dark:#9C462C;
   --gold:#C99A4A; --sand:#F3E8D6; --cream:#FBF6EC; --charcoal:#2B2016; --line:rgba(43,32,22,.14);
+  --plum:#2A2038; --red:#E00000; --green:#4CAF50; --clay-soft:#C2664A;
+  --ink-rgb:27,36,56; --charcoal-rgb:43,32,22; --clay-rgb:189,91,59;
+  --font-head:'Fraunces', serif; --font-body:'Work Sans', sans-serif;
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--cream); color:var(--charcoal); font-family:'Work Sans', sans-serif; }
-h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; }
+body{ margin:0; background:var(--cream); color:var(--charcoal); font-family:var(--font-body); }
+h1,h2,h3{ font-family:var(--font-head); font-weight:600; }
 a{ color:inherit; }
 .wrap{ max-width:1180px; margin:0 auto; padding:0 28px; }
 
 /* Der Rest des Designs (Hero, Tourkarten, Filter usw.) kommt Stück für Stück
    in eigenen CSS-Dateien dazu, sobald wir die jeweiligen Templates bauen –
    damit diese Datei nicht auf einen Schlag riesig wird. */
+
+/* ---------- Baukasten (Block-Muster) ---------- */
+.kv-page{ max-width:1100px; margin:0 auto; padding:24px 20px 80px; }
+.kv-page > *{ margin-top:0; }
+.kv-hero{ background:linear-gradient(135deg, var(--ink) 0%, var(--plum) 55%, var(--clay-dark) 130%); color:var(--cream); text-align:center; padding:80px 24px; border-radius:18px; margin:0 0 40px; }
+.kv-hero h1, .kv-hero h2{ color:inherit; margin:0 0 14px; }
+.kv-hero p{ max-width:56ch; margin:0 auto 26px; opacity:.92; }
+.kv-banner{ background:var(--ink); color:var(--cream); text-align:center; padding:46px 28px; border-radius:18px; margin:40px 0; }
+.kv-banner h2{ color:inherit; margin:0 0 10px; }
+.kv-banner p{ opacity:.9; margin:0 0 22px; }
+.kv-info{ background:var(--sand); padding:30px; border-radius:16px; margin:30px 0; }
+.kv-info h3{ margin-top:0; }
+.kv-card{ background:var(--sand); padding:28px; border-radius:16px; height:100%; box-sizing:border-box; }
+.kv-card h3{ margin-top:0; }
+.kv-text-image{ gap:40px; align-items:center; margin:40px 0; }
+.kv-three{ gap:24px; margin:40px 0; }
+.kv-center{ justify-content:center; }
+.kv-page .wp-block-button__link, .kv-hero .wp-block-button__link, .kv-banner .wp-block-button__link{ background:var(--clay); color:#fff; border-radius:100px; padding:13px 28px; font-weight:700; text-decoration:none; }
+.kv-page .wp-block-image img{ border-radius:14px; max-width:100%; height:auto; }
