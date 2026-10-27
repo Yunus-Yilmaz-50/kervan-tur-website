@@ -1159,7 +1159,8 @@ function kervan_tur_admin_columns( $columns ) {
 		}
 		$new[ $key ] = $label;
 		if ( $key === 'title' ) {
-			$new['kervan_sira'] = 'Sıra';
+			$new['kervan_sira']  = 'Sıra';
+			$new['kervan_badge'] = 'Rozet';
 		}
 	}
 	return $new;
@@ -1176,6 +1177,11 @@ function kervan_tur_admin_column_content( $column, $post_id ) {
 	} elseif ( $column === 'kervan_sira' ) {
 		$post = get_post( $post_id );
 		echo intval( $post->menu_order );
+	} elseif ( $column === 'kervan_badge' ) {
+		$badge = (string) get_post_meta( $post_id, 'kervan_badge', true );
+		echo $badge !== '' ? '<strong>' . esc_html( $badge ) . '</strong>' : '<span style="opacity:.4;">—</span>';
+		// Versteckte Werte für die Schnellbearbeitung
+		echo '<div class="hidden" id="kervan_qe_data_' . (int) $post_id . '" data-badge="' . esc_attr( $badge ) . '" data-price="' . esc_attr( (string) get_post_meta( $post_id, 'kervan_price', true ) ) . '" data-dates="' . esc_attr( (string) get_post_meta( $post_id, 'kervan_dates', true ) ) . '"></div>';
 	}
 }
 add_action( 'manage_tur_posts_custom_column', 'kervan_tur_admin_column_content', 10, 2 );
@@ -1183,7 +1189,7 @@ add_action( 'manage_tur_posts_custom_column', 'kervan_tur_admin_column_content',
 function kervan_tur_admin_column_css() {
 	$screen = get_current_screen();
 	if ( $screen && $screen->id === 'edit-tur' ) {
-		echo '<style>.column-kervan_thumb{ width:44px; padding-right:0!important; } .column-title{ padding-left:10px!important; } .column-kervan_sira{ width:60px; }</style>';
+		echo '<style>.column-kervan_thumb{ width:44px; padding-right:0!important; } .column-title{ padding-left:10px!important; } .column-kervan_sira{ width:60px; } .column-kervan_badge{ width:130px; }</style>';
 	}
 }
 add_action( 'admin_head', 'kervan_tur_admin_column_css' );
@@ -1460,8 +1466,9 @@ function kervan_text_files() {
 
 // Liest alle überschreibbaren Texte aus den Templates (nur im Admin nötig).
 function kervan_collect_texts() {
-	$out = array();
-	$re  = "/kervan_(?:t|ft)\\(\\s*'((?:[^'\\\\]|\\\\.)*)'\\s*\\)/u";
+	$out  = array();
+	$seen = array();
+	$re   = "/kervan_(?:t|ft)\\(\\s*'((?:[^'\\\\]|\\\\.)*)'\\s*\\)/u";
 	foreach ( kervan_text_files() as $file => $label ) {
 		$path = get_template_directory() . '/' . $file;
 		if ( ! is_readable( $path ) ) {
@@ -1471,8 +1478,12 @@ function kervan_collect_texts() {
 		if ( preg_match_all( $re, $src, $m ) ) {
 			$list = array();
 			foreach ( $m[1] as $t ) {
-				$t          = str_replace( array( "\\'", "\\\\" ), array( "'", "\\" ), $t );
-				$list[ $t ] = $t;
+				$t = str_replace( array( "\\'", "\\\\" ), array( "'", "\\" ), $t );
+				if ( isset( $seen[ $t ] ) ) {
+					continue;
+				}
+				$seen[ $t ] = true;
+				$list[ $t ]  = $t;
 			}
 			if ( $list ) {
 				$out[ $label ] = array_values( $list );
@@ -1762,3 +1773,193 @@ function kervan_sitemap_without_afis_groups( $taxonomies ) {
 	return $taxonomies;
 }
 add_filter( 'wp_sitemaps_taxonomies', 'kervan_sitemap_without_afis_groups' );
+
+// ---------- Alte Adressen der früheren Seite automatisch auf die neuen Seiten leiten ----------
+// /urun/<name>/ und /turlar-2026/<name>/ -> passende Tour, sonst Turlar-Seite; /turlar-2026/ -> Turlar-Seite mit Jahr; /galeri/ und /urun-kategori/ -> Turlar-Seite.
+// Läuft nach der Weiterleitungsliste aus dem Admin (diese hat Vorrang) und nur, wenn die Adresse sonst eine 404-Seite wäre.
+function kervan_redirect_legacy_urls() {
+	if ( ! is_404() ) {
+		return;
+	}
+	$uri_path = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '', PHP_URL_PATH );
+	$parts    = array_values( array_filter( explode( '/', strtolower( trim( $uri_path, '/' ) ) ), 'strlen' ) );
+	if ( empty( $parts ) ) {
+		return;
+	}
+	$root = $parts[0];
+	$slug = isset( $parts[1] ) ? $parts[1] : '';
+
+	if ( preg_match( '/^turlar-(\d{4})$/', $root, $year ) && $slug === '' ) {
+		wp_redirect( home_url( '/turlar/' ) . '#yil-' . $year[1], 301 );
+		exit;
+	}
+	if ( in_array( $root, array( 'urun', 'urun-kategori', 'galeri' ), true ) || preg_match( '/^turlar-\d{4}$/', $root ) ) {
+		$target = '';
+		if ( $slug !== '' && ( $root === 'urun' || strpos( $root, 'turlar-' ) === 0 ) ) {
+			$tour = get_page_by_path( $slug, OBJECT, 'tur' );
+			if ( $tour && $tour->post_status === 'publish' ) {
+				$target = get_permalink( $tour );
+			}
+		}
+		wp_redirect( $target !== '' ? $target : home_url( '/turlar/' ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'kervan_redirect_legacy_urls', 11 );
+
+// ---------- Rechtliche Seiten nicht in Google anzeigen (damit sie nicht als Sitelink erscheinen) ----------
+function kervan_noindex_legal_pages( $robots ) {
+	if ( is_page( array( 'gizlilik-politikasi', 'hizmet-sartlari' ) ) ) {
+		unset( $robots['index'] );
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+	}
+	return $robots;
+}
+add_filter( 'wp_robots', 'kervan_noindex_legal_pages' );
+
+// ---------- Schnellbearbeitung in der Turlar-Liste: Rozet, Fiyat und Tarihler ----------
+function kervan_quick_edit_box( $column_name, $post_type ) {
+	if ( $post_type !== 'tur' || $column_name !== 'kervan_badge' ) {
+		return;
+	}
+	?>
+	<fieldset class="inline-edit-col-left" style="clear:both;">
+		<div class="inline-edit-col">
+			<label>
+				<span class="title">Rozet</span>
+				<span class="input-text-wrap"><input type="text" name="kervan_qe_badge" list="kervan_qe_badges" autocomplete="off"></span>
+			</label>
+			<datalist id="kervan_qe_badges">
+				<option value="DOLU"></option>
+				<option value="GERÇEKLEŞTİ"></option>
+				<option value="SON 2 KİŞİ"></option>
+				<option value="YENİ"></option>
+			</datalist>
+			<label>
+				<span class="title">Fiyat</span>
+				<span class="input-text-wrap"><input type="text" name="kervan_qe_price"></span>
+			</label>
+			<label>
+				<span class="title">Tarihler</span>
+				<span class="input-text-wrap"><textarea name="kervan_qe_dates" rows="7" style="width:100%;"></textarea></span>
+			</label>
+			<p class="description" style="margin:4px 0 0;">Satır başına bir tarih. Tarihin yanına “(dolu)” yazarsanız kırmızı DOLU görünür. Boş bırakılan rozet = rozet yok.</p>
+		</div>
+	</fieldset>
+	<?php
+}
+add_action( 'quick_edit_custom_box', 'kervan_quick_edit_box', 10, 2 );
+
+function kervan_quick_edit_save( $post_id ) {
+	if ( ! isset( $_POST['_inline_edit'] ) || ! wp_verify_nonce( $_POST['_inline_edit'], 'inlineeditnonce' ) ) {
+		return;
+	}
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+	$map = array(
+		'kervan_qe_badge' => 'kervan_badge',
+		'kervan_qe_price' => 'kervan_price',
+		'kervan_qe_dates' => 'kervan_dates',
+	);
+	foreach ( $map as $field => $meta_key ) {
+		if ( isset( $_POST[ $field ] ) ) {
+			update_post_meta( $post_id, $meta_key, sanitize_textarea_field( $_POST[ $field ] ) );
+		}
+	}
+}
+add_action( 'save_post_tur', 'kervan_quick_edit_save' );
+
+function kervan_quick_edit_script( $hook ) {
+	if ( $hook !== 'edit.php' ) {
+		return;
+	}
+	$screen = get_current_screen();
+	if ( ! $screen || $screen->post_type !== 'tur' ) {
+		return;
+	}
+	wp_add_inline_script( 'inline-edit-post', '
+jQuery(function($){
+	if (typeof inlineEditPost === "undefined") { return; }
+	var originalEdit = inlineEditPost.edit;
+	inlineEditPost.edit = function(id){
+		originalEdit.apply(this, arguments);
+		var postId = (typeof id === "object") ? parseInt(this.getId(id), 10) : parseInt(id, 10);
+		var src = $("#kervan_qe_data_" + postId);
+		var row = $("#edit-" + postId);
+		if (!src.length || !row.length) { return; }
+		row.find("input[name=kervan_qe_badge]").val(src.attr("data-badge"));
+		row.find("input[name=kervan_qe_price]").val(src.attr("data-price"));
+		row.find("textarea[name=kervan_qe_dates]").val(src.attr("data-dates"));
+	};
+});
+' );
+}
+add_action( 'admin_enqueue_scripts', 'kervan_quick_edit_script' );
+
+// ---------- Afiş <-> Tour: welche Tour ist mit welcher Afiş verknüpft (aus dem Tour-Editor) ----------
+function kervan_afis_tour_map() {
+	static $map = null;
+	if ( $map !== null ) {
+		return $map;
+	}
+	$map   = array();
+	$tours = get_posts( array(
+		'post_type'      => 'tur',
+		'post_status'    => 'publish',
+		'posts_per_page' => -1,
+		'orderby'        => array( 'menu_order' => 'ASC', 'title' => 'ASC' ),
+		'meta_key'       => '_kervan_flyer_afis',
+		'meta_value'     => 0,
+		'meta_compare'   => '>',
+		'meta_type'      => 'NUMERIC',
+	) );
+	foreach ( $tours as $tour ) {
+		$afis_id = absint( get_post_meta( $tour->ID, '_kervan_flyer_afis', true ) );
+		if ( $afis_id && ! isset( $map[ $afis_id ] ) ) {
+			$map[ $afis_id ] = $tour->ID;
+		}
+	}
+	return $map;
+}
+
+// ---------- Teilen-Funktion (Paylaş): einmal pro Seite ausgeben ----------
+function kervan_share_assets() {
+	static $printed = false;
+	if ( $printed ) {
+		return;
+	}
+	$printed = true;
+	?>
+<style>
+.kervan-toast{ position:fixed; left:50%; bottom:28px; transform:translateX(-50%); background:var(--ink); color:#fff; padding:11px 20px; border-radius:100px; font-size:.88rem; z-index:9999; box-shadow:0 8px 24px rgba(0,0,0,.25); opacity:0; transition:opacity .25s ease; pointer-events:none; }
+.kervan-toast.show{ opacity:1; }
+</style>
+<script>
+function kervanToast(msg){
+	var t = document.createElement("div");
+	t.className = "kervan-toast";
+	t.textContent = msg;
+	document.body.appendChild(t);
+	requestAnimationFrame(function(){ t.classList.add("show"); });
+	setTimeout(function(){ t.classList.remove("show"); setTimeout(function(){ t.remove(); }, 300); }, 2200);
+}
+function kervanShare(btn){
+	var url = btn.getAttribute("data-url") || location.href;
+	var title = btn.getAttribute("data-title") || document.title;
+	var copied = btn.getAttribute("data-copied") || "";
+	var prompt = btn.getAttribute("data-prompt") || "";
+	if (navigator.share) {
+		navigator.share({ title: title, url: url }).catch(function(){});
+		return;
+	}
+	if (navigator.clipboard && navigator.clipboard.writeText) {
+		navigator.clipboard.writeText(url).then(function(){ kervanToast(copied); }, function(){ window.prompt(prompt, url); });
+		return;
+	}
+	window.prompt(prompt, url);
+}
+</script>
+	<?php
+}

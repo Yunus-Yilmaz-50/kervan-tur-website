@@ -65,7 +65,9 @@
 .notes-callout::before{ content:''; position:absolute; top:-16px; left:-12%; width:124%; height:1px; background:linear-gradient(90deg, transparent, rgba(var(--charcoal-rgb),.035) 15%, rgba(var(--charcoal-rgb),.035) 85%, transparent); }
 .notes-callout h4{ font-family:var(--font-head); font-size:.9rem; margin:0 0 6px; }
 
-.res-card{ margin-top:40px; background:var(--ink); color:var(--cream); border-radius:16px; padding:30px; }
+.res-card{ position:relative; margin-top:40px; background:var(--ink); color:var(--cream); border-radius:16px; padding:30px; }
+.res-share{ position:absolute; top:20px; right:20px; background:none; border:0; padding:8px; color:var(--cream); opacity:.6; cursor:pointer; line-height:0; border-radius:50%; transition:opacity .2s ease, background .2s ease; }
+.res-share:hover{ opacity:1; background:rgba(255,255,255,.1); }
 .res-card h4{ font-family:var(--font-head); font-size:1.1rem; margin-bottom:18px; }
 .res-contact{ display:flex; align-items:center; gap:22px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,.12); font-size:.92rem; flex-wrap:wrap; }
 @media(max-width:480px){ .res-contact{ font-size:.84rem; gap:10px 16px; } }
@@ -262,6 +264,7 @@
 	$howto_img = kervan_get_option( $howto_key );
 	?>
 	<div class="res-card">
+		<button type="button" class="res-share" onclick="kervanShare(this)" data-url="<?php echo esc_url( get_permalink() ); ?>" data-title="<?php echo esc_attr( get_the_title() ); ?>" data-copied="<?php echo esc_attr( kervan_t( 'Link kopyalandı' ) ); ?>" data-prompt="<?php echo esc_attr( kervan_t( 'Linki kopyalayın' ) ); ?>" aria-label="<?php echo esc_attr( kervan_t( 'Paylaş' ) ); ?>" title="<?php echo esc_attr( kervan_t( 'Paylaş' ) ); ?>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
 		<h4><?php echo esc_html( kervan_t( 'Rezervasyon & Bilgi' ) ); ?></h4>
 		<?php foreach ( $contacts as $c ) :
 			$digits = preg_replace( '/\D/', '', $c[1] );
@@ -286,6 +289,7 @@
 			<a class="res-review" href="<?php echo esc_url( kervan_get_option( 'kervan_google_url' ) ); ?>" target="_blank"><?php echo esc_html( kervan_t( 'Yorum Yap' ) ); ?></a>
 		</div>
 	</div>
+	<?php kervan_share_assets(); ?>
 
 	<?php
 	$same_group_terms = wp_get_post_terms( get_the_ID(), 'kita', array( 'fields' => 'ids' ) );
