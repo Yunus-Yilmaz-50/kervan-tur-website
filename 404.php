@@ -1,7 +1,7 @@
 <?php get_header(); ?>
 
 <main style="max-width:560px; margin:0 auto; padding:70px 24px 90px; text-align:center;">
-	<div style="font-size:3rem; margin-bottom:6px;">🧭</div>
+	<div style="color:var(--clay); margin-bottom:10px; line-height:0;"><?php echo kervan_icon( 'compass', 54 ); ?></div>
 	<h1 style="font-family:var(--font-head); margin:0 0 12px;"><?php echo esc_html( kervan_t( 'Aradığınız sayfa bulunamadı' ) ); ?></h1>
 	<p style="line-height:1.7; opacity:.8; margin:0 0 28px;"><?php echo esc_html( kervan_t( 'Bu bağlantı eski web sitemize ait olabilir. Aşağıdaki bağlantılardan devam edebilirsiniz.' ) ); ?></p>
 	<div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:center;">

@@ -42,3 +42,14 @@ a{ color:inherit; }
 .kv-center{ justify-content:center; }
 .kv-page .wp-block-button__link, .kv-hero .wp-block-button__link, .kv-banner .wp-block-button__link{ background:var(--clay); color:#fff; border-radius:100px; padding:13px 28px; font-weight:700; text-decoration:none; }
 .kv-page .wp-block-image img{ border-radius:14px; max-width:100%; height:auto; }
+
+/* ---------- Icons (Inline-SVG statt Emoji) ---------- */
+.kv-ic{ display:inline-block; vertical-align:-.18em; flex-shrink:0; }
+.ticket-dates .kv-ic, .ticket-pins .kv-ic{ margin-right:6px; }
+.kv-ic-pin .kv-c-main, .kv-ic-calendar .kv-c-main{ fill:var(--clay-soft); }
+.kv-ic-alert .kv-c-main{ fill:var(--red); }
+h4 .kv-ic{ margin-right:8px; vertical-align:-.22em; }
+.res-flyer .kv-ic{ margin-right:6px; }
+
+/* ---------- iPhone/Safari erkennt Telefonnummern selbst und macht Links daraus: Farbe und Stil vom umgebenden Text übernehmen ---------- */
+a[x-apple-data-detectors]{ color:inherit!important; text-decoration:none!important; font-weight:inherit!important; font-size:inherit!important; font-family:inherit!important; line-height:inherit!important; }

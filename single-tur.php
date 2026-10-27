@@ -206,7 +206,7 @@
 		<span class="section-eyebrow" style="margin-top:38px;"><?php echo esc_html( kervan_t( 'Gezilecek Yerler' ) ); ?></span>
 		<?php foreach ( $places as $place_name => $items ) : ?>
 			<div class="place-block">
-				<h4>📍 <?php echo esc_html( $place_name ); ?></h4>
+				<h4><?php echo kervan_icon( 'pin', 18 ); ?> <?php echo esc_html( $place_name ); ?></h4>
 				<?php if ( $items ) : ?>
 				<ul class="place-list">
 					<?php foreach ( $items as $item ) : ?>
@@ -236,7 +236,7 @@
 
 	<?php if ( $notes ) : ?>
 	<div class="notes-callout">
-		<h4>🚨 <?php echo esc_html( kervan_t( 'Not' ) ); ?></h4>
+		<h4><?php echo kervan_icon( 'alert', 18 ); ?> <?php echo esc_html( kervan_t( 'Not' ) ); ?></h4>
 		<?php foreach ( $notes as $n ) echo '<div>• ' . esc_html( $n ) . '</div>'; ?>
 	</div>
 	<?php endif; ?>
@@ -275,7 +275,7 @@
 					<?php if ( $howto_img ) : ?>
 					<a href="#" onclick="document.getElementById('kervanHowtoModal').style.display='flex'; return false;"><?php echo esc_html( kervan_t( 'Kayıt Formu' ) ); ?></a>
 					<?php endif; ?>
-					<a href="#" class="res-howto-link" onclick="kervanOpenKayitForm('<?php echo esc_js( $digits ); ?>'); return false;"><?php echo esc_html( kervan_t( 'Kayıt Ol' ) ); ?></a>
+					<a href="#" class="res-howto-link" data-digits="<?php echo esc_attr( $digits ); ?>" onclick="kervanOpenKayitForm('<?php echo esc_js( $digits ); ?>'); return false;"><?php echo esc_html( kervan_t( 'Kayıt Ol' ) ); ?></a>
 				</span>
 			</div>
 		<?php endforeach; ?>
@@ -285,7 +285,7 @@
 			<?php if ( kervan_get_option( 'kervan_wa_channel' ) ) : ?><a href="<?php echo esc_url( kervan_get_option( 'kervan_wa_channel' ) ); ?>" target="_blank"><?php echo esc_html( kervan_t( 'WhatsApp-Kanal' ) ); ?></a><?php endif; ?>
 		</div>
 		<div class="res-bottom-row">
-			<?php if ( $flyer_id ) : ?><a class="res-flyer" href="<?php echo esc_url( wp_get_attachment_url( $flyer_id ) ); ?>" target="_blank">📄 <?php echo esc_html( kervan_t( 'Tur Afişi İndir' ) ); ?></a><?php endif; ?>
+			<?php if ( $flyer_id ) : ?><a class="res-flyer" href="<?php echo esc_url( wp_get_attachment_url( $flyer_id ) ); ?>" target="_blank"><?php echo kervan_icon( 'download', 15 ); ?> <?php echo esc_html( kervan_t( 'Tur Afişi İndir' ) ); ?></a><?php endif; ?>
 			<a class="res-review" href="<?php echo esc_url( kervan_get_option( 'kervan_google_url' ) ); ?>" target="_blank"><?php echo esc_html( kervan_t( 'Yorum Yap' ) ); ?></a>
 		</div>
 	</div>
@@ -348,8 +348,8 @@
 					<h3><?php echo esc_html( get_the_title( $r_id ) ); ?></h3>
 				</div>
 				<div class="ticket-body">
-					<?php if ( $r_dates ) : ?><div class="ticket-dates">📅 <?php echo esc_html( $r_dates[0] ); ?><?php if ( count( $r_dates ) > 1 ) echo ' <span class="pins-extra">+' . ( count( $r_dates ) - 1 ) . '</span>'; ?></div><?php endif; ?>
-					<?php if ( $pins_txt ) : ?><div class="ticket-pins">📍 <?php echo esc_html( $pins_txt ); ?></div><?php endif; ?>
+					<?php if ( $r_dates ) : ?><div class="ticket-dates"><?php echo kervan_icon( 'calendar', 14 ); ?> <?php echo esc_html( $r_dates[0] ); ?><?php if ( count( $r_dates ) > 1 ) echo ' <span class="pins-extra">+' . ( count( $r_dates ) - 1 ) . '</span>'; ?></div><?php endif; ?>
+					<?php if ( $pins_txt ) : ?><div class="ticket-pins"><?php echo kervan_icon( 'pin', 14 ); ?> <?php echo esc_html( $pins_txt ); ?></div><?php endif; ?>
 					<div class="ticket-foot">
 						<div class="price-inline"><span class="price"><?php echo esc_html( $r_price ); ?></span><?php if ( $r_badge ) : ?><span class="status"><?php echo esc_html( $r_badge ); ?></span><?php endif; ?></div>
 						<?php if ( $r_days ) : ?><span class="days-badge"><?php echo esc_html( $r_days ); ?> <?php echo esc_html( kervan_t( 'GÜN' ) ); ?></span><?php endif; ?>
@@ -385,7 +385,7 @@ function heroMove(dir){
 <div id="kervanHowtoModal" onclick="if(event.target===this) this.style.display='none';" style="display:none; position:fixed; inset:0; z-index:260; background:rgba(var(--ink-rgb),.75); align-items:center; justify-content:center; padding:24px;">
 	<div style="background:var(--cream); border-radius:16px; padding:24px; max-width:480px; width:100%; max-height:85vh; overflow-y:auto; position:relative;">
 		<button onclick="document.getElementById('kervanHowtoModal').style.display='none';" style="position:absolute; top:12px; right:14px; background:none; border:none; font-size:1.3rem; cursor:pointer; line-height:1;">✕</button>
-		<a href="<?php echo esc_url( wp_get_attachment_url( $howto_img ) ); ?>" download style="display:inline-block; background:var(--ink); color:#fff; padding:9px 18px; border-radius:100px; text-decoration:none; font-weight:600; font-size:.84rem; margin-bottom:14px;">⬇ İndir</a>
+		<a href="<?php echo esc_url( wp_get_attachment_url( $howto_img ) ); ?>" download style="display:inline-block; background:var(--ink); color:#fff; padding:9px 18px; border-radius:100px; text-decoration:none; font-weight:600; font-size:.84rem; margin-bottom:14px;"><?php echo kervan_icon( 'download', 15 ); ?> İndir</a>
 		<img src="<?php echo esc_url( wp_get_attachment_url( $howto_img ) ); ?>" alt="Nasıl kayıt olurum?" style="width:100%; border-radius:10px; display:block;">
 	</div>
 </div>
@@ -472,6 +472,22 @@ function kervanOpenKayitForm(digits){
 	}
 	kervanUpdatePersonAddButton();
 }
+
+// Link von der Afişler-Seite (…#kayit): bei genau einer Kontaktperson das Formular direkt öffnen, bei mehreren zum Rezervasyon-Kasten springen
+(function(){
+	function kervanAutoOpenKayit(){
+		if (location.hash !== '#kayit') { return; }
+		var links = document.querySelectorAll('.res-howto-link[data-digits]:not([data-digits=""])');
+		if (links.length === 1) {
+			kervanOpenKayitForm(links[0].getAttribute('data-digits'));
+		} else if (links.length > 1) {
+			var card = document.querySelector('.res-card');
+			if (card) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+		}
+		history.replaceState(null, '', location.pathname + location.search);
+	}
+	if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', kervanAutoOpenKayit); } else { kervanAutoOpenKayit(); }
+})();
 
 function kervanCloseKayitForm(){
 	document.getElementById('kervanKayitModal').style.display = 'none';

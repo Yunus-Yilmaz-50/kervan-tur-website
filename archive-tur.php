@@ -113,20 +113,20 @@ function kervan_render_ticket( $t, $post, $featured = false ) {
 		data-past="<?php echo $t['badgePast'] ? '1' : '0'; ?>">
 		<div class="ticket-top" style="<?php echo $bg; ?>">
 			<span class="fav-since" data-fav-since></span>
-			<?php if ( ! $t['badgePast'] ) : ?><span class="fav-heart" data-fav-heart="<?php echo esc_attr( $t['id'] ); ?>" onclick="kervanToggleFav(event, this)" role="button" aria-label="<?php echo esc_attr( kervan_t( 'Favorilere ekle' ) ); ?>" tabindex="0">🤍</span><?php endif; ?>
+			<?php if ( ! $t['badgePast'] ) : ?><span class="fav-heart" data-fav-heart="<?php echo esc_attr( $t['id'] ); ?>" onclick="kervanToggleFav(event, this)" role="button" aria-label="<?php echo esc_attr( kervan_t( 'Favorilere ekle' ) ); ?>" tabindex="0"><?php echo kervan_icon( 'heart', 17 ); ?></span><?php endif; ?>
 			<h3><?php echo esc_html( $post->post_title ); ?></h3>
 		</div>
 		<div class="ticket-body">
 			<?php if ( $t['dates'] ) :
 				$shown_dates = array_slice( $t['dates'], 0, 2 );
 			?>
-			<div class="ticket-dates">📅
+			<div class="ticket-dates"><?php echo kervan_icon( 'calendar', 14 ); ?>
 				<?php foreach ( $shown_dates as $i => $d ) : ?><?php echo $i > 0 ? ' <span style="opacity:.4;">|</span> ' : ''; ?><?php echo esc_html( $d['d'] ); ?><?php if ( $d['full'] ) echo ' <span style="color:var(--red);font-weight:700;">(DOLU)</span>'; ?><?php endforeach; ?>
 				<?php if ( count( $t['dates'] ) > 2 ) : ?><span class="pins-extra">+<?php echo count( $t['dates'] ) - 2; ?></span><?php endif; ?>
 			</div>
 			<?php endif; ?>
 			<?php if ( $pins_list ) : ?>
-			<div class="ticket-pins">📍 <?php echo esc_html( implode( ' · ', $pins_list ) ); ?></div>
+			<div class="ticket-pins"><?php echo kervan_icon( 'pin', 14 ); ?> <?php echo esc_html( implode( ' · ', $pins_list ) ); ?></div>
 			<?php endif; ?>
 			<div class="ticket-foot">
 				<div class="price-inline"><span class="price"><?php echo esc_html( $t['price'] ); ?></span><?php if ( $t['badge'] ) : ?><span class="status<?php echo $t['badgeFull'] ? ' status-full' : ''; ?><?php echo $t['badgePast'] ? ' status-past' : ''; ?>"><?php echo esc_html( $t['badge'] ); ?></span><?php endif; ?></div>
@@ -157,7 +157,7 @@ body.post-type-archive-tur{ background:linear-gradient(135deg, #F6EFDF 0%, var(-
 .filter-toggle .count{ background:var(--clay-soft); color:#fff; border-radius:100px; padding:1px 8px; font-size:.72rem; }
 .search-box{ position:relative; flex:1; min-width:220px; }
 .search-box input{ width:100%; padding:13px 16px 13px 40px; border-radius:100px; border:1px solid var(--line); font-family:inherit; font-size:.9rem; background:var(--cream); box-shadow:0 6px 18px -14px rgba(var(--ink-rgb),.4); }
-.search-box .ic{ position:absolute; left:15px; top:50%; transform:translateY(-50%); opacity:.5; }
+.search-box .ic{ display:flex; line-height:0; position:absolute; left:15px; top:50%; transform:translateY(-50%); opacity:.5; }
 .filter-panel{ max-height:0; overflow:hidden; transition:max-height .3s ease; }
 .filter-panel.open{ max-height:320px; }
 .filter-panel-inner{ background:linear-gradient(150deg, var(--sand) 0%, #F6ECD9 60%, var(--sand) 100%); border-radius:16px; padding:20px 22px; margin-bottom:20px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; box-shadow:0 16px 34px -22px rgba(var(--ink-rgb),.45), inset 0 1px 0 rgba(255,255,255,.5); }
@@ -166,7 +166,8 @@ body.post-type-archive-tur{ background:linear-gradient(135deg, #F6EFDF 0%, var(-
 .chip{ border:none; background:#E8D9BC; padding:8px 15px; border-radius:100px; font-size:.78rem; font-weight:500; cursor:pointer; opacity:.85; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); transition:all .15s ease; }
 .chip:hover{ opacity:1; transform:translateY(-1px); }
 .chip.active{ background:linear-gradient(135deg, var(--ink), var(--plum)); color:#fff; opacity:1; box-shadow:0 6px 16px -8px rgba(var(--ink-rgb),.6); }
-.fav-toggle{ border:none; background:#E8D9BC; color:var(--charcoal); padding:8px 16px; border-radius:100px; font-size:.8rem; font-weight:600; cursor:pointer; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); transition:all .15s ease; }
+.fav-toggle{ display:inline-flex; align-items:center; gap:7px; border:none; background:#E8D9BC; color:var(--charcoal); padding:8px 16px; border-radius:100px; font-size:.8rem; font-weight:600; cursor:pointer; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); transition:all .15s ease; }
+.fav-toggle.active svg{ fill:currentColor; }
 .fav-toggle.active{ background:linear-gradient(135deg, var(--clay-soft), var(--clay-dark)); color:#fff; box-shadow:0 6px 16px -8px rgba(194,102,74,.55); }
 .filter-row-inline{ display:flex; align-items:center; gap:8px; font-size:.82rem; }
 .filter-row-inline select{ font-family:inherit; padding:8px 14px; border-radius:100px; border:none; background-color:#E8D9BC; color:var(--charcoal); font-size:.8rem; box-shadow:0 4px 10px -6px rgba(var(--ink-rgb),.25); appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232B2016' stroke-width='1.4' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; background-size:10px 7px; padding-right:30px; }
@@ -181,7 +182,11 @@ body.post-type-archive-tur{ background:linear-gradient(135deg, #F6EFDF 0%, var(-
 @media(max-width:640px){ .highlight-grid, .tour-grid{grid-template-columns:1fr;} }
 
 .ticket{ background:var(--cream); border-radius:10px; overflow:hidden; box-shadow:0 18px 40px -20px rgba(var(--ink-rgb),.35); display:flex; flex-direction:column; text-decoration:none; color:inherit; }
-.fav-heart{ position:absolute!important; top:14px; right:14px; z-index:2; font-size:1.15rem; width:30px; height:30px; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform .15s ease; filter:drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.fav-heart{ position:absolute!important; top:9px; right:9px; z-index:2; width:36px; height:36px; display:flex; align-items:center; justify-content:center; background:none; color:#fff; cursor:pointer; transition:transform .15s ease, color .15s ease; filter:drop-shadow(0 1px 3px rgba(0,0,0,.6)); }
+.fav-heart svg{ width:20px; height:20px; stroke-width:2; }
+.fav-heart:hover{ transform:scale(1.08); }
+.fav-heart.on{ color:var(--red); }
+.fav-heart.on svg{ fill:currentColor; }
 .fav-heart.pop{ animation:favPop .35s ease; }
 @keyframes favPop{ 0%{transform:scale(1);} 40%{transform:scale(1.35);} 100%{transform:scale(1);} }
 .fav-since{ position:absolute!important; top:14px; left:14px; z-index:2; background:rgba(0,0,0,.4); color:#fff; font-size:.66rem; font-weight:600; padding:5px 10px; border-radius:100px; display:none; }
@@ -237,8 +242,8 @@ $highlighted_posts = array_filter( $tour_posts, function( $p ) use ( $tour_data 
 	</h1>
 
 	<div class="search-row">
-		<button class="filter-toggle" id="filterToggle">⚙️ <span id="filterLabel"><?php echo kervan_ft( 'Filtrele' ); ?></span> <span class="count" id="filterCount" style="display:none;">0</span></button>
-		<div class="search-box"><span class="ic">🔍</span><input id="searchInput" placeholder="<?php echo kervan_ft( 'Tur ara…' ); ?>"></div>
+		<button class="filter-toggle" id="filterToggle"><?php echo kervan_icon( 'sliders', 16 ); ?> <span id="filterLabel"><?php echo kervan_ft( 'Filtrele' ); ?></span> <span class="count" id="filterCount" style="display:none;">0</span></button>
+		<div class="search-box"><span class="ic"><?php echo kervan_icon( 'search', 16 ); ?></span><input id="searchInput" placeholder="<?php echo kervan_ft( 'Tur ara…' ); ?>"></div>
 	</div>
 
 	<div class="filter-panel" id="filterPanel">
@@ -266,7 +271,7 @@ $highlighted_posts = array_filter( $tour_posts, function( $p ) use ( $tour_data 
 					<option value="cont"><?php echo kervan_ft( 'Kıtaya Göre (A-Z)' ); ?></option>
 				</select>
 			</div>
-			<button type="button" id="favOnlyToggle" class="fav-toggle">❤️ <span><?php echo kervan_ft( 'Favoriler' ); ?></span></button>
+			<button type="button" id="favOnlyToggle" class="fav-toggle"><?php echo kervan_icon( 'heart', 15 ); ?> <span><?php echo kervan_ft( 'Favoriler' ); ?></span></button>
 			<button class="clear-link" id="clearFilters"><?php echo kervan_ft( 'Filtreleri Temizle' ); ?></button>
 		</div>
 	</div>
@@ -286,7 +291,7 @@ $highlighted_posts = array_filter( $tour_posts, function( $p ) use ( $tour_data 
 	<p id="emptyMsg" style="display:none; opacity:.6;"><?php echo kervan_ft( 'Bu filtreye uygun tur yok.' ); ?></p>
 
 	<div id="kervanDunya2027Notice" style="display:none; margin-top:24px; background:linear-gradient(135deg, var(--ink), var(--plum)); color:#fff; border-radius:14px; padding:20px 24px; text-align:center; font-size:.92rem;">
-		🌍 <strong><?php echo kervan_ft( 'Dünya Turları 2027 son aşamada!' ); ?></strong> <?php echo kervan_ft( 'Türkiye Turları\'na ek olarak, Dünya Turları da yakında burada yayında olacak.' ); ?>
+		<?php echo kervan_icon( 'globe', 18 ); ?> <strong><?php echo kervan_ft( 'Dünya Turları 2027 son aşamada!' ); ?></strong> <?php echo kervan_ft( 'Türkiye Turları\'na ek olarak, Dünya Turları da yakında burada yayında olacak.' ); ?>
 	</div>
 </div>
 
@@ -456,10 +461,10 @@ function kervanToggleFav(e, el){
 	const favs = kervanGetFavs();
 	if (favs[id]) {
 		delete favs[id];
-		el.textContent = '🤍';
+		el.classList.remove('on');
 	} else {
 		favs[id] = Date.now();
-		el.textContent = '❤️';
+		el.classList.add('on');
 	}
 	el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
 	kervanSaveFavs(favs);
@@ -471,7 +476,7 @@ function kervanRenderFavState(){
 	const favs = kervanGetFavs();
 	document.querySelectorAll('[data-fav-heart]').forEach(el=>{
 		const id = el.dataset.favHeart;
-		el.textContent = favs[id] ? '❤️' : '🤍';
+		el.classList.toggle('on', !!favs[id]);
 		const sinceEl = el.closest('.ticket-top').querySelector('[data-fav-since]');
 		if (favs[id]) {
 			const days = Math.floor((Date.now() - favs[id]) / 86400000);

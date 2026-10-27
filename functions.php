@@ -143,6 +143,18 @@ function kervan_add_afis_meta_box() {
 }
 add_action( 'add_meta_boxes', 'kervan_add_afis_meta_box' );
 
+// Alle Touren, die auf diese Afiş verweisen (die Verknüpfung liegt an der Tour: _kervan_flyer_afis).
+function kervan_tours_for_afis( $afis_id ) {
+	return get_posts( array(
+		'post_type'      => 'tur',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+		'meta_key'       => '_kervan_flyer_afis',
+		'meta_value'     => (int) $afis_id,
+	) );
+}
+
 function kervan_render_afis_meta_box( $post ) {
 	wp_nonce_field( 'kervan_save_afis', 'kervan_afis_nonce' );
 
@@ -151,6 +163,23 @@ function kervan_render_afis_meta_box( $post ) {
 	echo '<input type="hidden" id="kervan_afis_file_id" name="kervan_afis_file_id" value="' . esc_attr( $file_id ) . '">';
 	echo '<span id="kervan_afis_file_preview">' . ( $file_id ? esc_html( basename( get_attached_file( $file_id ) ) ) : 'Henüz dosya seçilmedi' ) . '</span> ';
 	echo '<button type="button" class="button" id="kervan_afis_file_button">Dosya Seç / Değiştir</button></p>';
+
+	$linked_ids = kervan_tours_for_afis( $post->ID );
+	$linked_id  = $linked_ids ? (int) $linked_ids[0] : 0;
+	$all_tours  = get_posts( array( 'post_type' => 'tur', 'post_status' => array( 'publish', 'draft', 'pending', 'future', 'private' ), 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
+	echo '<input type="hidden" name="kervan_afis_tour_prev" value="' . (int) $linked_id . '">';
+	echo '<p><label style="font-weight:600;display:block;margin-bottom:4px;">Bağlı Tur — “Tura göz at” ve “Kayıt Ol” butonları bu tura gider</label>';
+	echo '<select name="kervan_afis_tour" style="width:100%;max-width:520px;"><option value="0">— Bağlı değil (sadece İndir ve Paylaş) —</option>';
+	foreach ( $all_tours as $tour ) {
+		$tour_year  = get_post_meta( $tour->ID, 'kervan_year', true );
+		$tour_label = get_the_title( $tour ) . ( $tour_year ? ' (' . $tour_year . ')' : '' ) . ( $tour->post_status !== 'publish' ? ' — taslak' : '' );
+		echo '<option value="' . (int) $tour->ID . '"' . selected( $linked_id, $tour->ID, false ) . '>' . esc_html( $tour_label ) . '</option>';
+	}
+	echo '</select><br><span style="opacity:.7;font-size:.85rem;">Aynı bağlantıyı turun düzenleme sayfasından da seçebilirsiniz. Seçilen turun “Tur Afişi” dosyası da otomatik bu afişten gelir.</span>';
+	if ( count( $linked_ids ) > 1 ) {
+		echo '<br><span style="color:#b32d2e;font-size:.85rem;">Bu afiş şu an ' . count( $linked_ids ) . ' tura bağlı. Burada yalnızca ilki gösterilir; değiştirmezseniz diğerleri aynen kalır.</span>';
+	}
+	echo '</p>';
 }
 
 function kervan_save_afis_meta( $post_id ) {
@@ -159,6 +188,23 @@ function kervan_save_afis_meta( $post_id ) {
 	}
 	if ( isset( $_POST['kervan_afis_file_id'] ) ) {
 		update_post_meta( $post_id, '_kervan_afis_file', sanitize_text_field( $_POST['kervan_afis_file_id'] ) );
+	}
+	// Verknüpfung mit einer Tour: nur anfassen, wenn die Auswahl geändert wurde
+	if ( isset( $_POST['kervan_afis_tour'] ) && current_user_can( 'edit_post', $post_id ) ) {
+		$new_tour  = absint( $_POST['kervan_afis_tour'] );
+		$prev_tour = isset( $_POST['kervan_afis_tour_prev'] ) ? absint( $_POST['kervan_afis_tour_prev'] ) : 0;
+		if ( $new_tour !== $prev_tour ) {
+			if ( $new_tour === 0 ) {
+				foreach ( kervan_tours_for_afis( $post_id ) as $tour_id_to_clear ) {
+					delete_post_meta( $tour_id_to_clear, '_kervan_flyer_afis' );
+				}
+			} elseif ( get_post_type( $new_tour ) === 'tur' ) {
+				if ( $prev_tour && (int) get_post_meta( $prev_tour, '_kervan_flyer_afis', true ) === (int) $post_id ) {
+					delete_post_meta( $prev_tour, '_kervan_flyer_afis' );
+				}
+				update_post_meta( $new_tour, '_kervan_flyer_afis', (int) $post_id );
+			}
+		}
 	}
 }
 add_action( 'save_post_afis', 'kervan_save_afis_meta' );
@@ -1181,7 +1227,7 @@ function kervan_tur_admin_column_content( $column, $post_id ) {
 		$badge = (string) get_post_meta( $post_id, 'kervan_badge', true );
 		echo $badge !== '' ? '<strong>' . esc_html( $badge ) . '</strong>' : '<span style="opacity:.4;">—</span>';
 		// Versteckte Werte für die Schnellbearbeitung
-		echo '<div class="hidden" id="kervan_qe_data_' . (int) $post_id . '" data-badge="' . esc_attr( $badge ) . '" data-price="' . esc_attr( (string) get_post_meta( $post_id, 'kervan_price', true ) ) . '" data-dates="' . esc_attr( (string) get_post_meta( $post_id, 'kervan_dates', true ) ) . '"></div>';
+		echo '<div class="hidden" id="kervan_qe_data_' . (int) $post_id . '" data-badge="' . esc_attr( $badge ) . '" data-price="' . esc_attr( (string) get_post_meta( $post_id, 'kervan_price', true ) ) . '" data-dates="' . esc_attr( (string) get_post_meta( $post_id, 'kervan_dates', true ) ) . '" data-afis="' . (int) absint( get_post_meta( $post_id, '_kervan_flyer_afis', true ) ) . '"></div>';
 	}
 }
 add_action( 'manage_tur_posts_custom_column', 'kervan_tur_admin_column_content', 10, 2 );
@@ -1818,7 +1864,7 @@ function kervan_noindex_legal_pages( $robots ) {
 }
 add_filter( 'wp_robots', 'kervan_noindex_legal_pages' );
 
-// ---------- Schnellbearbeitung in der Turlar-Liste: Rozet, Fiyat und Tarihler ----------
+// ---------- Schnellbearbeitung in der Turlar-Liste: Rozet, Fiyat, Tarihler und Afiş ----------
 function kervan_quick_edit_box( $column_name, $post_type ) {
 	if ( $post_type !== 'tur' || $column_name !== 'kervan_badge' ) {
 		return;
@@ -1844,6 +1890,17 @@ function kervan_quick_edit_box( $column_name, $post_type ) {
 				<span class="title">Tarihler</span>
 				<span class="input-text-wrap"><textarea name="kervan_qe_dates" rows="7" style="width:100%;"></textarea></span>
 			</label>
+			<label>
+				<span class="title">Afiş</span>
+				<span class="input-text-wrap">
+					<select name="kervan_qe_afis" style="width:100%;">
+						<option value="0">— Bağlı değil —</option>
+						<?php foreach ( get_posts( array( 'post_type' => 'afis', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) ) as $qe_afis ) : ?>
+						<option value="<?php echo (int) $qe_afis->ID; ?>"><?php echo esc_html( get_the_title( $qe_afis ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</span>
+			</label>
 			<p class="description" style="margin:4px 0 0;">Satır başına bir tarih. Tarihin yanına “(dolu)” yazarsanız kırmızı DOLU görünür. Boş bırakılan rozet = rozet yok.</p>
 		</div>
 	</fieldset>
@@ -1866,6 +1923,12 @@ function kervan_quick_edit_save( $post_id ) {
 	foreach ( $map as $field => $meta_key ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			update_post_meta( $post_id, $meta_key, sanitize_textarea_field( $_POST[ $field ] ) );
+		}
+	}
+	if ( isset( $_POST['kervan_qe_afis'] ) ) {
+		$qe_afis_id = absint( $_POST['kervan_qe_afis'] );
+		if ( $qe_afis_id === 0 || get_post_type( $qe_afis_id ) === 'afis' ) {
+			update_post_meta( $post_id, '_kervan_flyer_afis', $qe_afis_id );
 		}
 	}
 }
@@ -1892,6 +1955,7 @@ jQuery(function($){
 		row.find("input[name=kervan_qe_badge]").val(src.attr("data-badge"));
 		row.find("input[name=kervan_qe_price]").val(src.attr("data-price"));
 		row.find("textarea[name=kervan_qe_dates]").val(src.attr("data-dates"));
+		row.find("select[name=kervan_qe_afis]").val(src.attr("data-afis") || "0");
 	};
 });
 ' );
@@ -1962,4 +2026,24 @@ function kervanShare(btn){
 }
 </script>
 	<?php
+}
+
+// ---------- Icons als Inline-SVG (sehen auf jedem Gerät gleich aus, anders als Emoji) ----------
+function kervan_icon( $name, $size = 16 ) {
+	$paths = array(
+		'heart' => '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+		'sliders' => '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+		'search' => '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+		'calendar' => '<rect x="3" y="4.5" width="18" height="17" rx="3" fill="#fff" stroke="#D9CDB9" stroke-width="1"/><path class="kv-c-main" fill="#C2664A" stroke="none" d="M6 4.5h12a3 3 0 0 1 3 3V10H3V7.5a3 3 0 0 1 3-3z"/><rect x="7.2" y="2.4" width="2" height="4" rx="1" fill="#7A3322" stroke="none"/><rect x="14.8" y="2.4" width="2" height="4" rx="1" fill="#7A3322" stroke="none"/><rect x="6.8" y="12.8" width="2.4" height="2.4" rx=".6" fill="#2B2016" fill-opacity=".6" stroke="none"/><rect x="10.8" y="12.8" width="2.4" height="2.4" rx=".6" fill="#2B2016" fill-opacity=".6" stroke="none"/><rect x="14.8" y="12.8" width="2.4" height="2.4" rx=".6" fill="#2B2016" fill-opacity=".6" stroke="none"/><rect x="6.8" y="16.6" width="2.4" height="2.4" rx=".6" fill="#2B2016" fill-opacity=".6" stroke="none"/><rect x="10.8" y="16.6" width="2.4" height="2.4" rx=".6" fill="#2B2016" fill-opacity=".6" stroke="none"/><rect x="14.8" y="16.6" width="2.4" height="2.4" rx=".6" fill="#2B2016" fill-opacity=".6" stroke="none"/>',
+		'pin' => '<path class="kv-c-main" fill="#C2664A" stroke="none" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.7" fill="#fff" stroke="none"/>',
+		'globe' => '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+		'alert' => '<path class="kv-c-main" fill="#E00000" stroke="none" d="M10.3 3.9L1.8 18.1A2 2 0 0 0 3.5 21h17a2 2 0 0 0 1.7-2.9L13.7 3.9a2 2 0 0 0-3.4 0z"/><rect x="11" y="9" width="2" height="6" rx="1" fill="#fff" stroke="none"/><circle cx="12" cy="17.7" r="1.2" fill="#fff" stroke="none"/>',
+		'file' => '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+		'download' => '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+		'compass' => '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+	);
+	if ( ! isset( $paths[ $name ] ) ) {
+		return '';
+	}
+	return '<svg class="kv-ic kv-ic-' . esc_attr( $name ) . '" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="' . (int) $size . '" height="' . (int) $size . '" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $paths[ $name ] . '</svg>';
 }
